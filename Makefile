@@ -8,7 +8,7 @@ DB_NAME=simple_bank
 DB_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/root?sslmode=disable
 
 .PHONY:
-	migrate docker-create docker-drop docker-start docker-stop db-create dp-drop migrate-gen migrate-up migrate-down
+	migrate docker-create docker-drop docker-start docker-stop db-create dp-drop migrate-gen migrate-up migrate-down sqlc
 
 docker-create:
 	docker run --name $(DB_CONTAINER_NAME) -p $(DB_PORT):5432 -e POSTGRES_USER=$(DB_USER) -e POSTGRES_PASSWORD=$(DB_PASSWORD) -d postgres:alpine
@@ -32,7 +32,10 @@ migrate-gen:
 	$(GO_PATH)/bin/migrate.exe create -ext sql -dir $(MIGRATIONS_PATH) -seq init_schema
 
 migrate-up:
-	${GO_PATH}/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) up
+	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) up
 
 migrate-down:
-	${GO_PATH}/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) down
+	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) down
+
+sqlc:
+	cd ./storage/sqlc && $(GO_PATH)/bin/sqlc.exe generate
