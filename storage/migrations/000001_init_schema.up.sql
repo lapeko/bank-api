@@ -11,14 +11,14 @@ CREATE TABLE IF NOT EXISTS "account" (
     "owner" varchar NOT NULL,
     "currency" currency NOT NULL,
     "balance" bigint NOT NULL,
-    "created_at" timestamptz NOT NULL
+    "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE IF NOT EXISTS "entry" (
     "id" bigserial PRIMARY KEY,
     "account_id" bigint NOT NULL,
     "amount" bigint NOT NULL,
-    "created_at" timestamptz NOT NULL
+    "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE IF NOT EXISTS "transfer" (
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "transfer" (
     "account_from" bigint NOT NULL,
     "account_to" bigint NOT NULL,
     "amount" bigint NOT NULL,
-    "created_at" timestamptz NOT NULL
+    "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE INDEX IF NOT EXISTS "idx_account_owner " ON "account" ("owner");
