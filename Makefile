@@ -5,7 +5,7 @@ DB_USER=root
 DB_PASSWORD=1234
 DB_PORT=5432
 DB_NAME=simple_bank
-DB_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/root?sslmode=disable
+DB_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/$(DB_NAME)?sslmode=disable
 
 .PHONY:
 	migrate docker-create docker-drop docker-start docker-stop db-create dp-drop migrate-gen migrate-up migrate-down sqlc
