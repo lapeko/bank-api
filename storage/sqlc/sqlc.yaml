@@ -5,5 +5,5 @@ sql:
     schema: "../migrations/"
     gen:
       go:
-        package: "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/storage/repository"
+        package: "repository"
         out: "../repository/"
