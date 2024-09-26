@@ -48,6 +48,7 @@ func TestCreateTransfer(t *testing.T) {
 	require.NotZero(t, transfer.ID)
 	require.NotZero(t, transfer.CreatedAt)
 }
+
 func TestGetTransfer(t *testing.T) {
 	account1 := createTestAccount(t)
 	account2 := createTestAccount(t)
