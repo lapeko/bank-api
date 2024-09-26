@@ -66,6 +66,10 @@ func TestGetAccounts(t *testing.T) {
 	for i, listItem := range list {
 		require.NotNil(t, listItem)
 		require.Equal(t, listItem.ID, accounts[i].ID)
+		require.Equal(t, listItem.Balance, accounts[i].Balance)
+		require.Equal(t, listItem.Currency, accounts[i].Currency)
+		require.Equal(t, listItem.Owner, accounts[i].Owner)
+		require.Equal(t, listItem.CreatedAt, accounts[i].CreatedAt)
 	}
 }
 
@@ -88,4 +92,25 @@ func TestDeleteAccount(t *testing.T) {
 	require.Empty(t, emptyAcc)
 	require.NotEmpty(t, err)
 	require.Equal(t, err, sql.ErrNoRows)
+}
+
+func TestListAccountsQueryError(t *testing.T) {
+	_, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{Limit: -10, Offset: -10})
+	require.Error(t, err)
+}
+
+func TestListAccountsEmpty(t *testing.T) {
+	deleteAccounts(t)
+
+	params := ListAccountsParams{Limit: 10, Offset: 0}
+	list, err := testQueries.ListAccounts(context.Background(), params)
+
+	require.NoError(t, err)
+	require.Empty(t, list)
+}
+
+func TestListAccountsNegativeLimitOffset(t *testing.T) {
+	_, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{Limit: -1, Offset: -1})
+
+	require.Error(t, err)
 }
