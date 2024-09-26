@@ -9,6 +9,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func deleteAccounts(t *testing.T) {
+	_, err := db.Exec("DELETE FROM accounts")
+	require.NoError(t, err)
+	accounts, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{Offset: 0, Limit: 1})
+	require.Empty(t, err)
+	require.Empty(t, accounts)
+}
+
 func createTestAccount(t *testing.T) *Account {
 	params := CreateAccountParams{
 		Owner:    random.String(6),
@@ -31,6 +39,8 @@ func createTestAccount(t *testing.T) *Account {
 }
 
 func TestGetAccounts(t *testing.T) {
+	deleteAccounts(t)
+
 	var accounts []*Account
 
 	const size = 10
@@ -41,7 +51,9 @@ func TestGetAccounts(t *testing.T) {
 	}
 
 	limit := random.Int(1, size)
-	offset := random.Int(0, int(size-limit))
+	offset := random.Int(0, size-limit)
+
+	accounts = accounts[offset:]
 
 	params := ListAccountsParams{Limit: int32(limit), Offset: int32(offset)}
 
@@ -53,7 +65,7 @@ func TestGetAccounts(t *testing.T) {
 
 	for i, listItem := range list {
 		require.NotNil(t, listItem)
-		require.Equal(t, listItem.ID, accounts[offset+i].ID)
+		require.Equal(t, listItem.ID, accounts[i].ID)
 	}
 }
 

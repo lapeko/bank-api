@@ -12,12 +12,13 @@ import (
 var (
 	dbDriverStr = "postgres"
 	dbConnStr   = "postgres://root:1234@127.0.0.1:5432/simple_bank_test?sslmode=disable"
+	testQueries *Queries
+	db          *sql.DB
 )
 
-var testQueries *Queries
-
 func TestMain(m *testing.M) {
-	db, err := sql.Open(dbDriverStr, dbConnStr)
+	var err error
+	db, err = sql.Open(dbDriverStr, dbConnStr)
 
 	if err != nil {
 		log.Fatalln(err)
