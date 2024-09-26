@@ -26,14 +26,5 @@ func TestMain(m *testing.M) {
 
 	testQueries = New(db)
 
-	defer func() {
-		_, err := db.Exec("DELETE FROM accounts")
-		if err != nil {
-			log.Println("Failed to clean up accounts:", err)
-		}
-	}()
-
-	exitCode := m.Run()
-
-	os.Exit(exitCode)
+	os.Exit(m.Run())
 }

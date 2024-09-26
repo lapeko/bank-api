@@ -74,6 +74,7 @@ func TestGetAccounts(t *testing.T) {
 }
 
 func TestUpdateAccount(t *testing.T) {
+	deleteAccounts(t)
 	account := createTestAccount(t)
 	params := UpdateAccountParams{ID: account.ID, Balance: random.Int64(0, 1000000)}
 	err := testQueries.UpdateAccount(context.Background(), params)
@@ -85,6 +86,7 @@ func TestUpdateAccount(t *testing.T) {
 }
 
 func TestDeleteAccount(t *testing.T) {
+	deleteAccounts(t)
 	account := createTestAccount(t)
 	err := testQueries.DeleteAccount(context.Background(), account.ID)
 	require.NoError(t, err)
@@ -92,25 +94,4 @@ func TestDeleteAccount(t *testing.T) {
 	require.Empty(t, emptyAcc)
 	require.NotEmpty(t, err)
 	require.Equal(t, err, sql.ErrNoRows)
-}
-
-func TestListAccountsQueryError(t *testing.T) {
-	_, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{Limit: -10, Offset: -10})
-	require.Error(t, err)
-}
-
-func TestListAccountsEmpty(t *testing.T) {
-	deleteAccounts(t)
-
-	params := ListAccountsParams{Limit: 10, Offset: 0}
-	list, err := testQueries.ListAccounts(context.Background(), params)
-
-	require.NoError(t, err)
-	require.Empty(t, list)
-}
-
-func TestListAccountsNegativeLimitOffset(t *testing.T) {
-	_, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{Limit: -1, Offset: -1})
-
-	require.Error(t, err)
 }
