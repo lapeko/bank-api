@@ -34,20 +34,23 @@ COMMENT ON COLUMN "transfers"."amount" IS 'should be positive';
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'entries_account_id_fkey') THEN
-        ALTER TABLE "entries" ADD CONSTRAINT entries_account_id_fkey FOREIGN KEY ("account_id") REFERENCES "accounts" ("id");
+        ALTER TABLE "entries"
+        ADD CONSTRAINT entries_account_id_fkey FOREIGN KEY ("account_id") REFERENCES "accounts" ("id") ON DELETE CASCADE;
     END IF;
 END $$;
 
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'transfers_account_from_fkey') THEN
-        ALTER TABLE "transfers" ADD CONSTRAINT transfers_account_from_fkey FOREIGN KEY ("account_from") REFERENCES "accounts" ("id");
+        ALTER TABLE "transfers"
+        ADD CONSTRAINT transfers_account_from_fkey FOREIGN KEY ("account_from") REFERENCES "accounts" ("id") ON DELETE CASCADE;
     END IF;
 END $$;
 
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'transfers_account_to_fkey') THEN
-        ALTER TABLE "transfers" ADD CONSTRAINT transfers_account_to_fkey FOREIGN KEY ("account_to") REFERENCES "accounts" ("id");
+        ALTER TABLE "transfers"
+        ADD CONSTRAINT transfers_account_to_fkey FOREIGN KEY ("account_to") REFERENCES "accounts" ("id") ON DELETE CASCADE;
     END IF;
 END $$;
