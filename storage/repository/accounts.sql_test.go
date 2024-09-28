@@ -10,7 +10,7 @@ import (
 )
 
 func deleteAccounts(t *testing.T) {
-	_, err := db.Exec("DELETE FROM accounts")
+	_, err := testDb.Exec("DELETE FROM accounts")
 	require.NoError(t, err)
 	accounts, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{Offset: 0, Limit: 1})
 	require.Empty(t, err)
@@ -22,6 +22,27 @@ func createTestAccount(t *testing.T) *Account {
 		Owner:    random.String(6),
 		Currency: random.Currency(),
 		Balance:  random.Int64(0, 1000),
+	}
+
+	account, err := testQueries.CreateAccount(context.Background(), params)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, account)
+
+	require.Equal(t, params.Owner, account.Owner)
+	require.Equal(t, params.Balance, account.Balance)
+	require.Equal(t, params.Currency, account.Currency)
+	require.NotEmpty(t, account.ID)
+	require.NotEmpty(t, account.CreatedAt)
+
+	return &account
+}
+
+func createTestAccountWithBalance(t *testing.T, balance int64) *Account {
+	params := CreateAccountParams{
+		Owner:    random.String(6),
+		Currency: random.Currency(),
+		Balance:  balance,
 	}
 
 	account, err := testQueries.CreateAccount(context.Background(), params)
