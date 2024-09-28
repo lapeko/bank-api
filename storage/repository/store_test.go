@@ -75,5 +75,17 @@ func TestTransferTx(t *testing.T) {
 		require.Equal(t, transferRes.entryTo.Amount, transferAmount)
 		require.Equal(t, transferRes.entryTo.AccountID, accTo.ID)
 		require.NotNil(t, transferRes.entryTo.CreatedAt)
+
+		updatedAccFrom, err := testQueries.GetAccount(context.Background(), accFrom.ID)
+		require.Nil(t, err)
+		require.NotNil(t, updatedAccFrom)
+
+		updatedAccTo, err := testQueries.GetAccount(context.Background(), accTo.ID)
+		require.Nil(t, err)
+		require.NotNil(t, updatedAccTo)
+
+		delta := transferAmount * (int64(i) + 1)
+		require.Equal(t, updatedAccFrom.Balance, accFrom.Balance-delta)
+		require.Equal(t, updatedAccTo.Balance, accTo.Balance-delta)
 	}
 }
