@@ -48,15 +48,15 @@ func (s *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 }
 
 type TransferTxResult struct {
-	transfer  *Transfer
-	entryFrom *Entry
-	entryTo   *Entry
+	transfer    Transfer
+	entryFrom   Entry
+	entryTo     Entry
+	accountFrom Account
+	accountTo   Account
 }
 
 func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*TransferTxResult, error) {
-	var transfer Transfer
-	var entryFrom Entry
-	var entryTo Entry
+	var result TransferTxResult
 	var err error
 
 	err = s.execTx(ctx, func(q *Queries) error {
@@ -67,21 +67,36 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 		if account.Balance < params.Amount {
 			return errors.New("insufficient funds")
 		}
-		transfer, err = q.CreateTransfer(ctx, params)
+		result.transfer, err = q.CreateTransfer(ctx, params)
 		if err != nil {
 			return err
 		}
-		entryFrom, err = q.CreateEntry(ctx, CreateEntryParams{
+		result.entryFrom, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: params.AccountFrom,
 			Amount:    -params.Amount,
 		})
 		if err != nil {
 			return err
 		}
-		entryTo, err = q.CreateEntry(ctx, CreateEntryParams{
+		result.entryTo, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: params.AccountTo,
 			Amount:    params.Amount,
 		})
+		// implement in a wrong way
+		accFrom, err := q.GetAccount(ctx, params.AccountFrom)
+		fmt.Println("select for accountFrom with balance", accFrom.Balance)
+		if err != nil {
+			return err
+		}
+		result.accountFrom, err = q.UpdateAccount(ctx, UpdateAccountParams{ID: accFrom.ID, Balance: accFrom.Balance - params.Amount})
+		if err != nil {
+			return err
+		}
+		accTo, err := q.GetAccount(ctx, params.AccountTo)
+		if err != nil {
+			return err
+		}
+		result.accountTo, err = q.UpdateAccount(ctx, UpdateAccountParams{ID: accTo.ID, Balance: accTo.Balance + params.Amount})
 		if err != nil {
 			return err
 		}
@@ -92,9 +107,5 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 		return nil, err
 	}
 
-	return &TransferTxResult{
-		transfer:  &transfer,
-		entryFrom: &entryFrom,
-		entryTo:   &entryTo,
-	}, err
+	return &result, err
 }

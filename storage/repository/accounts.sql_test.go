@@ -98,9 +98,8 @@ func TestUpdateAccount(t *testing.T) {
 	deleteAccounts(t)
 	account := createTestAccount(t)
 	params := UpdateAccountParams{ID: account.ID, Balance: random.Int64(0, 1000000)}
-	err := testQueries.UpdateAccount(context.Background(), params)
+	updatedAccount, err := testQueries.UpdateAccount(context.Background(), params)
 	require.NoError(t, err)
-	updatedAccount, err := testQueries.GetAccount(context.Background(), account.ID)
 	require.NoError(t, err)
 	require.NotNil(t, updatedAccount)
 	require.Equal(t, params.Balance, updatedAccount.Balance)
