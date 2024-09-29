@@ -1,5 +1,10 @@
+ifeq ($(OS),Windows_NT)
+    GO_PATH=E:/go
+else
+    GO_PATH=/mnt/e/go
+endif
+
 MIGRATIONS_PATH=storage/migrations
-GO_PATH=/mnt/e/go
 DB_CONTAINER_NAME=postgres_alpine
 DB_USER=root
 DB_PASSWORD=1234
