@@ -6,13 +6,18 @@ endif
 
 MIGRATIONS_PATH=storage/migrations
 DB_CONTAINER_NAME=postgres_alpine
+
 DB_USER=root
 DB_PASSWORD=1234
 DB_PORT=5432
+
 DB_NAME=simple_bank
 DB_TEST_NAME=simple_bank_test
+DB_MANUAL_TEST_NAME=manual_test
+
 DB_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/$(DB_NAME)?sslmode=disable
 DB_TEST_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/$(DB_TEST_NAME)?sslmode=disable
+DB_MANUAL_TEST_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/$(DB_MANUAL_TEST_NAME)?sslmode=disable
 
 .PHONY:
 	migrate docker-create docker-drop docker-start docker-stop db-create dp-drop migrate-gen migrate-up migrate-down sqlc
@@ -32,10 +37,12 @@ docker-stop:
 db-create:
 	docker exec -i $(DB_CONTAINER_NAME) createdb --username=$(DB_USER) --owner=$(DB_USER) $(DB_NAME)
 	docker exec -i $(DB_CONTAINER_NAME) createdb --username=$(DB_USER) --owner=$(DB_USER) $(DB_TEST_NAME)
+	#docker exec -i $(DB_CONTAINER_NAME) createdb --username=$(DB_USER) --owner=$(DB_USER) $(DB_MANUAL_TEST_NAME)
 
 dp-drop:
 	docker exec -i $(DB_CONTAINER_NAME) dropdb --username=$(DB_USER) $(DB_NAME)
 	docker exec -i $(DB_CONTAINER_NAME) dropdb --username=$(DB_USER) $(DB_TEST_NAME)
+	#docker exec -i $(DB_CONTAINER_NAME) dropdb --username=$(DB_USER) $(DB_MANUAL_TEST_NAME)
 
 migrate-gen:
 	$(GO_PATH)/bin/migrate.exe create -ext sql -dir $(MIGRATIONS_PATH) -seq init_schema
@@ -43,10 +50,12 @@ migrate-gen:
 migrate-up:
 	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) up
 	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_TEST_CONNECTION_URL) up
+	#$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_MANUAL_TEST_CONNECTION_URL) up
 
 migrate-down:
 	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) down
 	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_TEST_CONNECTION_URL) down
+	#$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_MANUAL_TEST_CONNECTION_URL) down
 
 sqlc:
 	cd ./storage/sqlc && $(GO_PATH)/bin/sqlc.exe generate
