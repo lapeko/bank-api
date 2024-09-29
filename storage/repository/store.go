@@ -86,15 +86,26 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 			Amount:    params.Amount,
 		})
 
-		result.accountFrom, err = q.UpdateAccountBalanceBy(ctx, UpdateAccountBalanceByParams{ID: params.AccountFrom, Amount: -params.Amount})
-		if err != nil {
-			return err
+		if params.AccountFrom < params.AccountTo {
+			result.accountFrom, result.accountTo, err = updateBalances(
+				ctx,
+				q,
+				params.AccountFrom,
+				-params.Amount,
+				params.AccountTo,
+				params.Amount,
+			)
+		} else {
+			result.accountTo, result.accountFrom, err = updateBalances(
+				ctx,
+				q,
+				params.AccountTo,
+				params.Amount,
+				params.AccountFrom,
+				-params.Amount,
+			)
 		}
-
-		result.accountTo, err = q.UpdateAccountBalanceBy(ctx, UpdateAccountBalanceByParams{ID: params.AccountTo, Amount: params.Amount})
-		if err != nil {
-			return err
-		}
+		
 		return nil
 	})
 
@@ -103,4 +114,13 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 	}
 
 	return &result, err
+}
+
+func updateBalances(ctx context.Context, q *Queries, acc1Id int64, amount1 int64, acc2Id int64, amount2 int64) (acc1 Account, acc2 Account, err error) {
+	acc1, err = q.UpdateAccountBalanceBy(ctx, UpdateAccountBalanceByParams{ID: acc1Id, Amount: amount1})
+	if err != nil {
+		return
+	}
+	acc2, err = q.UpdateAccountBalanceBy(ctx, UpdateAccountBalanceByParams{ID: acc2Id, Amount: amount2})
+	return
 }
