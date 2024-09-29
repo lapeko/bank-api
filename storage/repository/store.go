@@ -62,9 +62,10 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 	var err error
 
 	err = s.execTx(ctx, func(q *Queries) error {
-		account, err := q.GetAccount(ctx, params.AccountFrom)
-
 		ctxKey := ctx.Value(transferTxCtxKey)
+
+		fmt.Printf("%s\t%s\n", ctxKey, "GetAccount")
+		account, err := q.GetAccount(ctx, params.AccountFrom)
 
 		if err != nil {
 			return err
@@ -72,11 +73,13 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 		if account.Balance < params.Amount {
 			return errors.New("insufficient funds")
 		}
+
 		fmt.Printf("%s\t%s\n", ctxKey, "CreateTransfer")
 		result.transfer, err = q.CreateTransfer(ctx, params)
 		if err != nil {
 			return err
 		}
+
 		fmt.Printf("%s\t%s\n", ctxKey, "CreateEntry 1")
 		result.entryFrom, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: params.AccountFrom,
@@ -85,27 +88,32 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 		if err != nil {
 			return err
 		}
+
 		fmt.Printf("%s\t%s\n", ctxKey, "CreateEntry 2")
 		result.entryTo, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: params.AccountTo,
 			Amount:    params.Amount,
 		})
+
 		// implement in a wrong way
 		fmt.Printf("%s\t%s\n", ctxKey, "GetAccountForUpdate 1")
 		accFrom, err := q.GetAccountForUpdate(ctx, params.AccountFrom)
 		if err != nil {
 			return err
 		}
+
 		fmt.Printf("%s\t%s\n", ctxKey, "UpdateAccount 1")
 		result.accountFrom, err = q.UpdateAccount(ctx, UpdateAccountParams{ID: accFrom.ID, Balance: accFrom.Balance - params.Amount})
 		if err != nil {
 			return err
 		}
+
 		fmt.Printf("%s\t%s\n", ctxKey, "GetAccountForUpdate 2")
 		accTo, err := q.GetAccountForUpdate(ctx, params.AccountTo)
 		if err != nil {
 			return err
 		}
+
 		fmt.Printf("%s\t%s\n", ctxKey, "UpdateAccount 2")
 		result.accountTo, err = q.UpdateAccount(ctx, UpdateAccountParams{ID: accTo.ID, Balance: accTo.Balance + params.Amount})
 		if err != nil {

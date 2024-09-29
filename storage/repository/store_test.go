@@ -33,7 +33,7 @@ func TestTransferTx(t *testing.T) {
 
 	transferAmount := int64(10)
 
-	const n = 3
+	const n = 5
 
 	transferChan := make(chan *TransferTxResult)
 	errorChan := make(chan error)
