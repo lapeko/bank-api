@@ -93,6 +93,6 @@ func TestTransferTx(t *testing.T) {
 
 		delta := transferAmount * (int64(i) + 1)
 		require.Equal(t, accFrom.Balance-delta, updatedAccFrom.Balance)
-		require.Equal(t, accTo.Balance-delta, updatedAccTo.Balance)
+		require.Equal(t, accTo.Balance+delta, updatedAccTo.Balance)
 	}
 }
