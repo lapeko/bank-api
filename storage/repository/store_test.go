@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/storage/random"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -22,7 +23,7 @@ func TestTransferInsufficientFunds(t *testing.T) {
 	})
 
 	require.Nil(t, transfer)
-	require.Equal(t, err, errors.New("insufficient funds"))
+	require.Equal(t, errors.New("insufficient funds"), err)
 }
 
 func TestTransferTx(t *testing.T) {
@@ -32,12 +33,14 @@ func TestTransferTx(t *testing.T) {
 
 	transferAmount := int64(10)
 
-	const N = 5
+	const n = 5
 
 	transferChan := make(chan *TransferTxResult)
 	errorChan := make(chan error)
 
-	for i := 0; i < N; i++ {
+	fmt.Println("before tx\t", accFrom.Balance, accTo.Balance)
+
+	for i := 0; i < n; i++ {
 		go func() {
 			transferRes, err := NewStore(testDb).TransferTX(context.Background(), CreateTransferParams{
 				AccountFrom: accFrom.ID,
@@ -49,11 +52,13 @@ func TestTransferTx(t *testing.T) {
 		}()
 	}
 
-	for i := 0; i < N; i++ {
+	for i := 0; i < n; i++ {
 		err := <-errorChan
 		require.Nil(t, err)
 
 		transferRes := <-transferChan
+
+		fmt.Println("tx\t\t\t", transferRes.accountFrom.Balance, transferRes.accountTo.Balance)
 
 		require.NotNil(t, transferRes)
 		require.NotNil(t, transferRes.transfer)
@@ -61,19 +66,19 @@ func TestTransferTx(t *testing.T) {
 		require.NotNil(t, transferRes.entryFrom)
 
 		require.NotEmpty(t, transferRes.transfer.ID)
-		require.Equal(t, transferRes.transfer.Amount, transferAmount)
-		require.Equal(t, transferRes.transfer.AccountFrom, accFrom.ID)
-		require.Equal(t, transferRes.transfer.AccountTo, accTo.ID)
+		require.Equal(t, transferAmount, transferRes.transfer.Amount)
+		require.Equal(t, accFrom.ID, transferRes.transfer.AccountFrom)
+		require.Equal(t, accTo.ID, transferRes.transfer.AccountTo)
 		require.NotEmpty(t, transferRes.transfer.CreatedAt)
 
 		require.NotEmpty(t, transferRes.entryFrom.ID)
-		require.Equal(t, -transferRes.entryFrom.Amount, transferAmount)
-		require.Equal(t, transferRes.entryFrom.AccountID, accFrom.ID)
+		require.Equal(t, transferAmount, -transferRes.entryFrom.Amount)
+		require.Equal(t, accFrom.ID, transferRes.entryFrom.AccountID)
 		require.NotNil(t, transferRes.entryFrom.CreatedAt)
 
 		require.NotEmpty(t, transferRes.entryTo.ID)
-		require.Equal(t, transferRes.entryTo.Amount, transferAmount)
-		require.Equal(t, transferRes.entryTo.AccountID, accTo.ID)
+		require.Equal(t, transferAmount, transferRes.entryTo.Amount)
+		require.Equal(t, accTo.ID, transferRes.entryTo.AccountID)
 		require.NotNil(t, transferRes.entryTo.CreatedAt)
 
 		updatedAccFrom, err := testQueries.GetAccount(context.Background(), accFrom.ID)
@@ -84,8 +89,10 @@ func TestTransferTx(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, updatedAccTo)
 
+		fmt.Println("after tx\t", updatedAccFrom.Balance, updatedAccTo.Balance)
+
 		delta := transferAmount * (int64(i) + 1)
-		require.Equal(t, updatedAccFrom.Balance, accFrom.Balance-delta)
-		require.Equal(t, updatedAccTo.Balance, accTo.Balance-delta)
+		require.Equal(t, accFrom.Balance-delta, updatedAccFrom.Balance)
+		require.Equal(t, accTo.Balance-delta, updatedAccTo.Balance)
 	}
 }
