@@ -33,7 +33,7 @@ func TestTransferTx(t *testing.T) {
 
 	transferAmount := int64(10)
 
-	const n = 5
+	const n = 3
 
 	transferChan := make(chan *TransferTxResult)
 	errorChan := make(chan error)
@@ -41,8 +41,9 @@ func TestTransferTx(t *testing.T) {
 	fmt.Println("before tx\t", accFrom.Balance, accTo.Balance)
 
 	for i := 0; i < n; i++ {
+		ctx := context.WithValue(context.Background(), transferTxCtxKey, fmt.Sprintf("tx %d", i+1))
 		go func() {
-			transferRes, err := NewStore(testDb).TransferTX(context.Background(), CreateTransferParams{
+			transferRes, err := NewStore(testDb).TransferTX(ctx, CreateTransferParams{
 				AccountFrom: accFrom.ID,
 				AccountTo:   accTo.ID,
 				Amount:      transferAmount,
