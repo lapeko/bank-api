@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/storage/random"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -38,12 +37,9 @@ func TestTransferTx(t *testing.T) {
 	transferChan := make(chan *TransferTxResult)
 	errorChan := make(chan error)
 
-	fmt.Println("before tx\t", accFrom.Balance, accTo.Balance)
-
 	for i := 0; i < n; i++ {
-		ctx := context.WithValue(context.Background(), transferTxCtxKey, fmt.Sprintf("tx %d", i+1))
 		go func() {
-			transferRes, err := NewStore(testDb).TransferTX(ctx, CreateTransferParams{
+			transferRes, err := NewStore(testDb).TransferTX(context.Background(), CreateTransferParams{
 				AccountFrom: accFrom.ID,
 				AccountTo:   accTo.ID,
 				Amount:      transferAmount,
@@ -58,8 +54,6 @@ func TestTransferTx(t *testing.T) {
 		require.Nil(t, err)
 
 		transferRes := <-transferChan
-
-		fmt.Println("tx\t\t\t", transferRes.accountFrom.Balance, transferRes.accountTo.Balance)
 
 		require.NotNil(t, transferRes)
 		require.NotNil(t, transferRes.transfer)
@@ -89,8 +83,6 @@ func TestTransferTx(t *testing.T) {
 		updatedAccTo, err := testQueries.GetAccount(context.Background(), accTo.ID)
 		require.Nil(t, err)
 		require.NotNil(t, updatedAccTo)
-
-		fmt.Println("after tx\t", updatedAccFrom.Balance, updatedAccTo.Balance)
 
 		delta := transferAmount * (int64(i) + 1)
 		require.Equal(t, accFrom.Balance-delta, updatedAccFrom.Balance)
