@@ -29,9 +29,9 @@ func createTestAccount(t *testing.T) *Account {
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
 
-	require.Equal(t, params.Owner, account.Owner)
-	require.Equal(t, params.Balance, account.Balance)
-	require.Equal(t, params.Currency, account.Currency)
+	require.Equal(t, account.Owner, params.Owner)
+	require.Equal(t, account.Balance, params.Balance)
+	require.Equal(t, account.Currency, params.Currency)
 	require.NotEmpty(t, account.ID)
 	require.NotEmpty(t, account.CreatedAt)
 
@@ -50,9 +50,9 @@ func createTestAccountWithBalance(t *testing.T, balance int64) *Account {
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
 
-	require.Equal(t, params.Owner, account.Owner)
-	require.Equal(t, params.Balance, account.Balance)
-	require.Equal(t, params.Currency, account.Currency)
+	require.Equal(t, account.Owner, params.Owner)
+	require.Equal(t, account.Balance, params.Balance)
+	require.Equal(t, account.Currency, params.Currency)
 	require.NotEmpty(t, account.ID)
 	require.NotEmpty(t, account.CreatedAt)
 
@@ -86,11 +86,11 @@ func TestGetAccounts(t *testing.T) {
 
 	for i, listItem := range list {
 		require.NotNil(t, listItem)
-		require.Equal(t, listItem.ID, accounts[i].ID)
-		require.Equal(t, listItem.Balance, accounts[i].Balance)
-		require.Equal(t, listItem.Currency, accounts[i].Currency)
-		require.Equal(t, listItem.Owner, accounts[i].Owner)
-		require.Equal(t, listItem.CreatedAt, accounts[i].CreatedAt)
+		require.Equal(t, accounts[i].ID, listItem.ID)
+		require.Equal(t, accounts[i].Balance, listItem.Balance)
+		require.Equal(t, accounts[i].Currency, listItem.Currency)
+		require.Equal(t, accounts[i].Owner, listItem.Owner)
+		require.Equal(t, accounts[i].CreatedAt, listItem.CreatedAt)
 	}
 }
 

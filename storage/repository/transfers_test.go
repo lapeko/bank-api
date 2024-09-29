@@ -69,37 +69,41 @@ func TestListTransfers(t *testing.T) {
 	account1 := createTestAccount(t)
 	account2 := createTestAccount(t)
 
-	for i := 0; i < 5; i++ {
+	const n = 5
+
+	for i := 0; i < n; i++ {
 		createTestTransfer(t, account1.ID, account2.ID)
 	}
 
 	params := ListTransfersParams{
-		Limit:  5,
+		Limit:  n,
 		Offset: 0,
 	}
 
 	transfers, err := testQueries.ListTransfers(context.Background(), params)
 	require.NoError(t, err)
-	require.Len(t, transfers, 5)
+	require.Len(t, transfers, n)
 }
 
 func TestListTransfersByReceiver(t *testing.T) {
 	account1 := createTestAccount(t)
 	account2 := createTestAccount(t)
 
-	for i := 0; i < 5; i++ {
+	const n = 5
+
+	for i := 0; i < n; i++ {
 		createTestTransfer(t, account1.ID, account2.ID)
 	}
 
 	params := ListTransfersByReceiverParams{
 		AccountTo: account2.ID,
-		Limit:     5,
+		Limit:     n,
 		Offset:    0,
 	}
 
 	transfers, err := testQueries.ListTransfersByReceiver(context.Background(), params)
 	require.NoError(t, err)
-	require.Len(t, transfers, 5)
+	require.Len(t, transfers, n)
 
 	for _, transfer := range transfers {
 		require.Equal(t, account2.ID, transfer.AccountTo)
@@ -110,19 +114,21 @@ func TestListTransfersBySender(t *testing.T) {
 	account1 := createTestAccount(t)
 	account2 := createTestAccount(t)
 
-	for i := 0; i < 5; i++ {
+	const n = 5
+
+	for i := 0; i < n; i++ {
 		createTestTransfer(t, account1.ID, account2.ID)
 	}
 
 	params := ListTransfersBySenderParams{
 		AccountFrom: account1.ID,
-		Limit:       5,
+		Limit:       n,
 		Offset:      0,
 	}
 
 	transfers, err := testQueries.ListTransfersBySender(context.Background(), params)
 	require.NoError(t, err)
-	require.Len(t, transfers, 5)
+	require.Len(t, transfers, n)
 
 	for _, transfer := range transfers {
 		require.Equal(t, account1.ID, transfer.AccountFrom)
@@ -133,20 +139,22 @@ func TestListTransfersBySenderAndReceiver(t *testing.T) {
 	account1 := createTestAccount(t)
 	account2 := createTestAccount(t)
 
-	for i := 0; i < 5; i++ {
+	const n = 5
+
+	for i := 0; i < n; i++ {
 		createTestTransfer(t, account1.ID, account2.ID)
 	}
 
 	params := ListTransfersBySenderAndReceiverParams{
 		AccountFrom: account1.ID,
 		AccountTo:   account2.ID,
-		Limit:       5,
+		Limit:       n,
 		Offset:      0,
 	}
 
 	transfers, err := testQueries.ListTransfersBySenderAndReceiver(context.Background(), params)
 	require.NoError(t, err)
-	require.Len(t, transfers, 5)
+	require.Len(t, transfers, n)
 
 	for _, transfer := range transfers {
 		require.Equal(t, account1.ID, transfer.AccountFrom)

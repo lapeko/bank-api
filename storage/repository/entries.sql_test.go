@@ -74,10 +74,10 @@ func TestGetEntries(t *testing.T) {
 
 	for i, listItem := range list {
 		require.NotNil(t, listItem)
-		require.Equal(t, listItem.ID, entries[i].ID)
-		require.Equal(t, listItem.Amount, entries[i].Amount)
-		require.Equal(t, listItem.AccountID, entries[i].AccountID)
-		require.Equal(t, listItem.CreatedAt, entries[i].CreatedAt)
+		require.Equal(t, entries[i].ID, listItem.ID)
+		require.Equal(t, entries[i].Amount, listItem.Amount)
+		require.Equal(t, entries[i].AccountID, listItem.AccountID)
+		require.Equal(t, entries[i].CreatedAt, listItem.CreatedAt)
 	}
 }
 
