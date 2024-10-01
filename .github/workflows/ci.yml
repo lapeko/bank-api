@@ -15,6 +15,7 @@ jobs:
       postgres:
         image: postgres:alpine
         env:
+          POSTGRES_USER: root
           POSTGRES_DB: simple_bank_test
           POSTGRES_PASSWORD: 1234
         options: >-
