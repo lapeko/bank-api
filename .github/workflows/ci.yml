@@ -39,6 +39,11 @@ jobs:
         run: |
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432; do echo "Waiting for Postgres..."; sleep 3; done
+
+
       - name: Migrate
         run: |
           migrate -path storage/migrations -database "postgres://root:1234@localhost:5432/simple_bank_test?sslmode=disable" up
