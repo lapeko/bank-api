@@ -59,3 +59,6 @@ migrate-down:
 
 sqlc:
 	cd ./storage/sqlc && $(GO_PATH)/bin/sqlc.exe generate
+
+test:
+	go test -v -cover ./...
