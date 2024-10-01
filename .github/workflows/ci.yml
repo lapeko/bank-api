@@ -35,7 +35,8 @@ jobs:
         run: go build -v ./...
 
       - name: Install migrate
-        run: curl -L https://github.com/golang-migrate/migrate/releases/download/$version/migrate.$os-$arch.tar.gz | tar xvz
+        run: |
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
       - name: Migrate
         run: make migrate-up
