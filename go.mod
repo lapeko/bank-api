@@ -1,6 +1,6 @@
 module github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes
 
-go 1.23.1
+go 1.23
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
