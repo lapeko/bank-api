@@ -60,6 +60,7 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 	var err error
 
 	err = s.execTx(ctx, func(q *Queries) error {
+		// TODO add FOR UPDATE
 		account, err := q.GetAccount(ctx, params.AccountFrom)
 		if err != nil {
 			return err
@@ -105,7 +106,7 @@ func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*T
 				-params.Amount,
 			)
 		}
-		
+
 		return nil
 	})
 
