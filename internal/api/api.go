@@ -34,5 +34,7 @@ func New(postgresAddr string) *Api {
 func (a *Api) Start(apiAddr string) {
 	r := gin.Default()
 
+	r.POST("/accounts", a.createAccount)
+
 	log.Fatalln(r.Run(apiAddr))
 }
