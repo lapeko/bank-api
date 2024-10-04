@@ -35,6 +35,7 @@ func (a *Api) Start(apiAddr string) {
 	r := gin.Default()
 
 	r.POST("/accounts", a.createAccount)
+	r.GET("/accounts", a.getAccounts)
 
 	log.Fatalln(r.Run(apiAddr))
 }

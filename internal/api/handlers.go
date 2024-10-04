@@ -13,23 +13,51 @@ type createAccountRequest struct {
 }
 
 func (a *Api) createAccount(ctx *gin.Context) {
-	accReq := &createAccountRequest{}
-	if err := ctx.ShouldBindJSON(accReq); err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailRes(err))
+	req := &createAccountRequest{}
+	if err := ctx.ShouldBindJSON(req); err != nil {
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
 		return
 	}
 
 	params := repository.CreateAccountParams{
-		Owner:    accReq.Owner,
-		Currency: accReq.Currency,
+		Owner:    req.Owner,
+		Currency: req.Currency,
 		Balance:  0,
 	}
 	acc, err := a.store.CreateAccount(context.Background(), params)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailRes(err))
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, genOkRes(acc))
+	ctx.JSON(http.StatusCreated, genOkBody(acc))
+}
+
+type getAccountsRequest struct {
+	Page int32 `form:"page" json:"page" binding:"required,min=1"`
+	Size int32 `form:"size" json:"size" binding:"required,min=5,max=50"`
+}
+
+func (a *Api) getAccounts(ctx *gin.Context) {
+	req := &getAccountsRequest{}
+
+	if err := ctx.ShouldBindQuery(req); err != nil {
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		return
+	}
+
+	params := repository.ListAccountsParams{
+		Limit:  req.Size,
+		Offset: (req.Page - 1) * req.Size,
+	}
+
+	accounts, err := a.store.ListAccounts(context.Background(), params)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, genOkBody(accounts))
 }
