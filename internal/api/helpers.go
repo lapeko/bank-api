@@ -2,10 +2,14 @@ package api
 
 import "github.com/gin-gonic/gin"
 
-func genFailBody(err error) gin.H {
+func genFailBody(input interface{}) gin.H {
+	err := input
+	if realErr, ok := err.(error); ok {
+		err = realErr.Error()
+	}
 	return gin.H{
 		"ok":   false,
-		"err":  err.Error(),
+		"err":  err,
 		"body": nil,
 	}
 }
