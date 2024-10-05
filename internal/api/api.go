@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/config"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/storage/repository"
 	_ "github.com/lib/pq"
 	"log"
@@ -11,12 +12,15 @@ import (
 type Api struct {
 	router *gin.RouterGroup
 	store  *repository.Store
+	config *config.ApiConfig
 }
 
-func New(postgresAddr string) *Api {
-	api := &Api{}
+func New(config *config.ApiConfig) *Api {
+	a := &Api{}
 
-	db, err := sql.Open("postgres", postgresAddr)
+	a.config = config
+
+	db, err := sql.Open(a.config.DbDrives, a.config.DbAddress)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -24,14 +28,14 @@ func New(postgresAddr string) *Api {
 
 	log.Println("DB successfully connected")
 
-	api.store = repository.NewStore(db)
+	a.store = repository.NewStore(db)
 
 	log.Println("Store created")
 
-	return api
+	return a
 }
 
-func (a *Api) Start(apiAddr string) {
+func (a *Api) Start() {
 	r := gin.Default()
 
 	r.POST("/accounts", a.createAccount)
@@ -40,5 +44,5 @@ func (a *Api) Start(apiAddr string) {
 	r.PUT("/accounts", a.updateAccount)
 	r.DELETE("/accounts/:id", a.deleteAccount)
 
-	log.Fatalln(r.Run(apiAddr))
+	log.Fatalln(r.Run(a.config.ApiAddress))
 }
