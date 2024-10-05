@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/storage/repository"
 	"net/http"
@@ -55,6 +57,32 @@ func (a *Api) getAccounts(ctx *gin.Context) {
 	accounts, err := a.store.ListAccounts(context.Background(), params)
 
 	if err != nil {
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, genOkBody(accounts))
+}
+
+type getAccountByIdRequest struct {
+	Id int64 `uri:"id" binding:"required,min=1"`
+}
+
+func (a *Api) getAccount(ctx *gin.Context) {
+	req := &getAccountByIdRequest{}
+
+	if err := ctx.ShouldBindUri(req); err != nil {
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		return
+	}
+
+	accounts, err := a.store.GetAccount(context.Background(), req.Id)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, genFailBody("user not found"))
+			return
+		}
 		ctx.JSON(http.StatusBadRequest, genFailBody(err))
 		return
 	}
