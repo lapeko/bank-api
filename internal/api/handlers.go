@@ -89,3 +89,54 @@ func (a *Api) getAccount(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, genOkBody(accounts))
 }
+
+type updateAccountRequest struct {
+	ID      int64  `json:"id" binding:"required,min=1"`
+	Balance *int64 `json:"balance"`
+}
+
+func (a *Api) updateAccount(ctx *gin.Context) {
+	req := updateAccountRequest{}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		return
+	}
+
+	if req.Balance == nil {
+		ctx.JSON(http.StatusBadRequest, genFailBody("balance is not defined"))
+		return
+	}
+
+	acc, err := a.store.UpdateAccount(context.Background(), repository.UpdateAccountParams{
+		ID:      req.ID,
+		Balance: *req.Balance,
+	})
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, acc)
+}
+
+type deleteAccountRequest struct {
+	Id int64 `uri:"id" binding:"required,min=1"`
+}
+
+func (a *Api) deleteAccount(ctx *gin.Context) {
+	req := &deleteAccountRequest{}
+
+	if err := ctx.ShouldBindUri(req); err != nil {
+		ctx.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	if err := a.store.DeleteAccount(context.Background(), req.Id); err != nil {
+		ctx.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, struct{ Id int64 }{Id: req.Id})
+}

@@ -37,6 +37,8 @@ func (a *Api) Start(apiAddr string) {
 	r.POST("/accounts", a.createAccount)
 	r.GET("/accounts", a.getAccounts)
 	r.GET("/accounts/:id", a.getAccount)
+	r.PUT("/accounts", a.updateAccount)
+	r.DELETE("/accounts/:id", a.deleteAccount)
 
 	log.Fatalln(r.Run(apiAddr))
 }
