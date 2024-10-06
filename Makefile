@@ -4,6 +4,8 @@ else
     GO_PATH=/mnt/e/go
 endif
 
+MODULE=github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes
+
 MIGRATIONS_PATH=storage/migrations
 DB_CONTAINER_NAME=postgres_alpine
 
@@ -20,7 +22,7 @@ DB_TEST_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/$(DB_TEST_NAME)?sslmo
 DB_MANUAL_TEST_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/$(DB_MANUAL_TEST_NAME)?sslmode=disable
 
 .PHONY:
-	migrate docker-create docker-drop docker-start docker-stop db-create dp-drop migrate-gen migrate-up migrate-down sqlc
+	migrate docker-create docker-drop docker-start docker-stop db-create dp-drop migrate-gen migrate-up migrate-down sqlc test mockgen
 
 docker-create:
 	docker run --name $(DB_CONTAINER_NAME) -p $(DB_PORT):5432 -e POSTGRES_USER=$(DB_USER) -e POSTGRES_PASSWORD=$(DB_PASSWORD) -d postgres:alpine
@@ -62,3 +64,6 @@ sqlc:
 
 test:
 	go test -v -cover ./...
+
+mockgen:
+	$(GO_PATH)/bin/mockgen.exe -build_flags=--mod=mod -package mockdb -destination ./storage/repository/mocks/store.go $(MODULE)/storage/repository Store

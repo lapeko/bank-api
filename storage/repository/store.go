@@ -5,21 +5,27 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	_ "github.com/golang/mock/mockgen/model"
 )
 
-type Store struct {
+type Store interface {
+	Querier
+	TransferTX(ctx context.Context, params CreateTransferParams) (*TransferTxResult, error)
+}
+
+type SqlStore struct {
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) *SqlStore {
+	return &SqlStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
-func (s *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (s *SqlStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -55,7 +61,7 @@ type TransferTxResult struct {
 	accountTo   Account
 }
 
-func (s *Store) TransferTX(ctx context.Context, params CreateTransferParams) (*TransferTxResult, error) {
+func (s *SqlStore) TransferTX(ctx context.Context, params CreateTransferParams) (*TransferTxResult, error) {
 	var result TransferTxResult
 	var err error
 
