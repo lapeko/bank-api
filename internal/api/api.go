@@ -38,11 +38,7 @@ func New(config *config.ApiConfig) *Api {
 func (a *Api) Start() {
 	r := gin.Default()
 
-	r.POST("/accounts", a.createAccount)
-	r.GET("/accounts", a.getAccounts)
-	r.GET("/accounts/:id", a.getAccount)
-	r.PUT("/accounts", a.updateAccount)
-	r.DELETE("/accounts/:id", a.deleteAccount)
+	setUpAccounts(a.store, r)
 
 	log.Fatalln(r.Run(a.config.ApiAddress))
 }
