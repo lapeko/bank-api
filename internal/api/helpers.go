@@ -1,22 +1,26 @@
 package api
 
-import "github.com/gin-gonic/gin"
+type response struct {
+	Ok   bool        `json:"ok"`
+	Err  interface{} `json:"err"`
+	Body interface{} `json:"body"`
+}
 
-func genFailBody(input interface{}) gin.H {
+func genFailBody(input interface{}) response {
 	err := input
 	if realErr, ok := err.(error); ok {
 		err = realErr.Error()
 	}
-	return gin.H{
-		"ok":   false,
-		"err":  err,
-		"body": nil,
+	return response{
+		Ok:   false,
+		Err:  err,
+		Body: nil,
 	}
 }
-func genOkBody(body interface{}) gin.H {
-	return gin.H{
-		"ok":   true,
-		"err":  nil,
-		"body": body,
+func genOkBody(body interface{}) response {
+	return response{
+		Ok:   true,
+		Err:  nil,
+		Body: body,
 	}
 }

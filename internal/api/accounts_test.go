@@ -1,6 +1,8 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/storage/random"
@@ -38,6 +40,7 @@ func TestGetAccountApi(t *testing.T) {
 
 	api.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
+	matchAccountBody(t, account, recorder.Body)
 }
 
 func randomAccount() repository.Account {
@@ -47,4 +50,15 @@ func randomAccount() repository.Account {
 		Balance:  random.Int64(0, 1000),
 		Currency: random.Currency(),
 	}
+}
+
+func matchAccountBody(t *testing.T, account repository.Account, body *bytes.Buffer) {
+	var response struct {
+		Ok   bool               `json:"ok"`
+		Err  interface{}        `json:"err"`
+		Body repository.Account `json:"body"`
+	}
+	err := json.NewDecoder(body).Decode(&response)
+	require.NoError(t, err)
+	require.Equal(t, account, response.Body)
 }
