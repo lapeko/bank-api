@@ -8,3 +8,4 @@ sql:
         package: "repository"
         out: "../repository/"
         emit_empty_slices: true
+        emit_interface: true
