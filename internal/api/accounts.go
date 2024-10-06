@@ -9,12 +9,12 @@ import (
 	"net/http"
 )
 
-var store *repository.Store
+var store repository.Store
 
-func setUpAccounts(s *repository.Store, r *gin.Engine) {
-	store = s
+func setUpAccounts(a *Api) {
+	store = a.store
 
-	accounts := r.Group("/accounts")
+	accounts := a.router.Group("/accounts")
 
 	accounts.POST("/", createAccount)
 	accounts.GET("/", getAccounts)

@@ -8,6 +8,8 @@ import (
 func main() {
 	conf := config.NewApiConfig()
 	conf.Parse()
-	a := api.New(conf)
+	a := api.New()
+	a.ConnectStore(conf)
+	a.SetUpRoutes()
 	a.Start()
 }

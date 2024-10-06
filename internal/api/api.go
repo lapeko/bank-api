@@ -10,14 +10,16 @@ import (
 )
 
 type Api struct {
-	router *gin.RouterGroup
-	store  *repository.Store
+	router *gin.Engine
+	store  repository.Store
 	config *config.ApiConfig
 }
 
-func New(config *config.ApiConfig) *Api {
-	a := &Api{}
+func New() *Api {
+	return &Api{}
+}
 
+func (a *Api) ConnectStore(config *config.ApiConfig) {
 	a.config = config
 
 	db, err := sql.Open(a.config.DbDrives, a.config.DbAddress)
@@ -31,14 +33,14 @@ func New(config *config.ApiConfig) *Api {
 	a.store = repository.NewStore(db)
 
 	log.Println("Store created")
+}
 
-	return a
+func (a *Api) SetUpRoutes() {
+	a.router = gin.Default()
+
+	setUpAccounts(a)
 }
 
 func (a *Api) Start() {
-	r := gin.Default()
-
-	setUpAccounts(a.store, r)
-
-	log.Fatalln(r.Run(a.config.ApiAddress))
+	log.Fatalln(a.router.Run(a.config.ApiAddress))
 }
