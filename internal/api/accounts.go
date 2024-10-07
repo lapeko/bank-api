@@ -9,12 +9,8 @@ import (
 	"net/http"
 )
 
-var store repository.Store
-
-func setUpAccounts(a *Api) {
-	store = a.store
-
-	accounts := a.router.Group("/accounts")
+func setUpAccounts(r *gin.Engine) {
+	accounts := r.Group("/accounts")
 
 	accounts.POST("/", createAccount)
 	accounts.GET("/", getAccounts)
@@ -29,6 +25,7 @@ type createAccountRequest struct {
 }
 
 func createAccount(ctx *gin.Context) {
+	a := GetApi()
 	req := &createAccountRequest{}
 	if err := ctx.ShouldBindJSON(req); err != nil {
 		ctx.JSON(http.StatusBadRequest, genFailBody(err))
@@ -40,7 +37,7 @@ func createAccount(ctx *gin.Context) {
 		Currency: req.Currency,
 		Balance:  0,
 	}
-	acc, err := store.CreateAccount(context.Background(), params)
+	acc, err := a.store.CreateAccount(context.Background(), params)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, genFailBody(err))
@@ -56,6 +53,7 @@ type getAccountsRequest struct {
 }
 
 func getAccounts(ctx *gin.Context) {
+	a := GetApi()
 	req := &getAccountsRequest{}
 
 	if err := ctx.ShouldBindQuery(req); err != nil {
@@ -68,7 +66,7 @@ func getAccounts(ctx *gin.Context) {
 		Offset: (req.Page - 1) * req.Size,
 	}
 
-	accounts, err := store.ListAccounts(context.Background(), params)
+	accounts, err := a.store.ListAccounts(context.Background(), params)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, genFailBody(err))
@@ -83,6 +81,7 @@ type getAccountByIdRequest struct {
 }
 
 func getAccount(ctx *gin.Context) {
+	a := GetApi()
 	req := &getAccountByIdRequest{}
 
 	if err := ctx.ShouldBindUri(req); err != nil {
@@ -90,7 +89,7 @@ func getAccount(ctx *gin.Context) {
 		return
 	}
 
-	account, err := store.GetAccount(context.Background(), req.Id)
+	account, err := a.store.GetAccount(context.Background(), req.Id)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -110,6 +109,7 @@ type updateAccountRequest struct {
 }
 
 func updateAccount(ctx *gin.Context) {
+	a := GetApi()
 	req := updateAccountRequest{}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -122,7 +122,7 @@ func updateAccount(ctx *gin.Context) {
 		return
 	}
 
-	acc, err := store.UpdateAccount(context.Background(), repository.UpdateAccountParams{
+	acc, err := a.store.UpdateAccount(context.Background(), repository.UpdateAccountParams{
 		ID:      req.ID,
 		Balance: *req.Balance,
 	})
@@ -140,6 +140,7 @@ type deleteAccountRequest struct {
 }
 
 func deleteAccount(ctx *gin.Context) {
+	a := GetApi()
 	req := &deleteAccountRequest{}
 
 	if err := ctx.ShouldBindUri(req); err != nil {
@@ -147,7 +148,7 @@ func deleteAccount(ctx *gin.Context) {
 		return
 	}
 
-	if err := store.DeleteAccount(context.Background(), req.Id); err != nil {
+	if err := a.store.DeleteAccount(context.Background(), req.Id); err != nil {
 		ctx.JSON(http.StatusBadRequest, genFailBody(err))
 		return
 	}

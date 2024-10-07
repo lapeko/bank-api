@@ -15,8 +15,13 @@ type Api struct {
 	config *config.ApiConfig
 }
 
-func New() *Api {
-	return &Api{}
+var api *Api
+
+func GetApi() *Api {
+	if api == nil {
+		api = &Api{}
+	}
+	return api
 }
 
 func (a *Api) ConnectStore(config *config.ApiConfig) {
@@ -38,7 +43,7 @@ func (a *Api) ConnectStore(config *config.ApiConfig) {
 func (a *Api) SetUpRoutes() {
 	a.router = gin.Default()
 
-	setUpAccounts(a)
+	setUpAccounts(a.router)
 }
 
 func (a *Api) Start() {
