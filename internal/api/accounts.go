@@ -90,7 +90,7 @@ func getAccount(ctx *gin.Context) {
 		return
 	}
 
-	accounts, err := store.GetAccount(context.Background(), req.Id)
+	account, err := store.GetAccount(context.Background(), req.Id)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -101,7 +101,7 @@ func getAccount(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, genOkBody(accounts))
+	ctx.JSON(http.StatusOK, genOkBody(account))
 }
 
 type updateAccountRequest struct {
@@ -132,7 +132,7 @@ func updateAccount(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, acc)
+	ctx.JSON(http.StatusOK, genOkBody(acc))
 }
 
 type deleteAccountRequest struct {
@@ -143,14 +143,14 @@ func deleteAccount(ctx *gin.Context) {
 	req := &deleteAccountRequest{}
 
 	if err := ctx.ShouldBindUri(req); err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
 		return
 	}
 
 	if err := store.DeleteAccount(context.Background(), req.Id); err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.JSON(http.StatusBadRequest, genFailBody(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, struct{ Id int64 }{Id: req.Id})
+	ctx.JSON(http.StatusOK, genOkBody(struct{ Id int64 }{Id: req.Id}))
 }

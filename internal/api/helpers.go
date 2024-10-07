@@ -17,6 +17,7 @@ func genFailBody(input interface{}) response {
 		Body: nil,
 	}
 }
+
 func genOkBody(body interface{}) response {
 	return response{
 		Ok:   true,
