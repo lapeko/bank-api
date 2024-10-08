@@ -14,9 +14,9 @@ func setUpTransfers(r *gin.Engine) {
 }
 
 type createTransferRequest struct {
-	AccountFrom int64 `json:"accountFrom" binding:"required min=0"`
-	AccountTo   int64 `json:"accountTo" binding:"required min=0"`
-	Amount      int64 `json:"amount" binding:"required gt=0"`
+	AccountFrom int64 `json:"accountFrom" binding:"required,min=0"`
+	AccountTo   int64 `json:"accountTo" binding:"required,min=0"`
+	Amount      int64 `json:"amount" binding:"required,gt=0"`
 }
 
 func createTransfer(ctx *gin.Context) {
