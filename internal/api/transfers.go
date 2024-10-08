@@ -30,14 +30,14 @@ func createTransfer(ctx *gin.Context) {
 	accFrom, err := a.store.GetAccount(context.Background(), req.AccountFrom)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		ctx.JSON(http.StatusNotFound, genFailBody("accountFrom not found"))
 		return
 	}
 
 	accTo, err := a.store.GetAccount(context.Background(), req.AccountTo)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		ctx.JSON(http.StatusNotFound, genFailBody("accountTo not found"))
 		return
 	}
 
