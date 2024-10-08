@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	_ "github.com/golang/mock/mockgen/model"
 )
@@ -66,15 +65,6 @@ func (s *SqlStore) TransferTX(ctx context.Context, params CreateTransferParams) 
 	var err error
 
 	err = s.execTx(ctx, func(q *Queries) error {
-		// TODO add FOR UPDATE
-		account, err := q.GetAccount(ctx, params.AccountFrom)
-		if err != nil {
-			return err
-		}
-		if account.Balance < params.Amount {
-			return errors.New("insufficient funds")
-		}
-
 		result.transfer, err = q.CreateTransfer(ctx, params)
 		if err != nil {
 			return err
