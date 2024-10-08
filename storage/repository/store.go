@@ -53,11 +53,11 @@ func (s *SqlStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 }
 
 type TransferTxResult struct {
-	transfer    Transfer
-	entryFrom   Entry
-	entryTo     Entry
-	accountFrom Account
-	accountTo   Account
+	Transfer    Transfer `json:"transfer"`
+	EntryFrom   Entry    `json:"entryFrom"`
+	EntryTo     Entry    `json:"entryTo"`
+	AccountFrom Account  `json:"accountFrom"`
+	AccountTo   Account  `json:"accountTo"`
 }
 
 func (s *SqlStore) TransferTX(ctx context.Context, params CreateTransferParams) (*TransferTxResult, error) {
@@ -65,12 +65,12 @@ func (s *SqlStore) TransferTX(ctx context.Context, params CreateTransferParams) 
 	var err error
 
 	err = s.execTx(ctx, func(q *Queries) error {
-		result.transfer, err = q.CreateTransfer(ctx, params)
+		result.Transfer, err = q.CreateTransfer(ctx, params)
 		if err != nil {
 			return err
 		}
 
-		result.entryFrom, err = q.CreateEntry(ctx, CreateEntryParams{
+		result.EntryFrom, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: params.AccountFrom,
 			Amount:    -params.Amount,
 		})
@@ -78,13 +78,13 @@ func (s *SqlStore) TransferTX(ctx context.Context, params CreateTransferParams) 
 			return err
 		}
 
-		result.entryTo, err = q.CreateEntry(ctx, CreateEntryParams{
+		result.EntryTo, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: params.AccountTo,
 			Amount:    params.Amount,
 		})
 
 		if params.AccountFrom < params.AccountTo {
-			result.accountFrom, result.accountTo, err = updateBalances(
+			result.AccountFrom, result.AccountTo, err = updateBalances(
 				ctx,
 				q,
 				params.AccountFrom,
@@ -93,7 +93,7 @@ func (s *SqlStore) TransferTX(ctx context.Context, params CreateTransferParams) 
 				params.Amount,
 			)
 		} else {
-			result.accountTo, result.accountFrom, err = updateBalances(
+			result.AccountTo, result.AccountFrom, err = updateBalances(
 				ctx,
 				q,
 				params.AccountTo,
