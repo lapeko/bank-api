@@ -21,7 +21,7 @@ func setUpAccounts(r *gin.Engine) {
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR PLN"`
+	Currency string `json:"currency" binding:"required,currency"`
 }
 
 func createAccount(ctx *gin.Context) {
