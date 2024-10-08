@@ -44,6 +44,7 @@ func (a *Api) SetUpRoutes() {
 	a.router = gin.Default()
 
 	setUpAccounts(a.router)
+	setUpTransfers(a.router)
 }
 
 func (a *Api) Start() {
