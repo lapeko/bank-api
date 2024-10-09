@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/storage/repository"
+	"github.com/lib/pq"
 	"net/http"
 )
 
@@ -20,7 +21,7 @@ func setUpAccounts(r *gin.Engine) {
 }
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
+	UserId   int64  `json:"userId" binding:"required,min=1"`
 	Currency string `json:"currency" binding:"required,currency"`
 }
 
@@ -33,14 +34,21 @@ func createAccount(ctx *gin.Context) {
 	}
 
 	params := repository.CreateAccountParams{
-		Owner:    req.Owner,
+		UserID:   req.UserId,
 		Currency: req.Currency,
 		Balance:  0,
 	}
 	acc, err := a.store.CreateAccount(context.Background(), params)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		if e, ok := err.(*pq.Error); ok {
+			switch e.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, genFailBody(err))
+			}
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, genFailBody(err))
 		return
 	}
 
@@ -69,7 +77,7 @@ func getAccounts(ctx *gin.Context) {
 	accounts, err := a.store.ListAccounts(context.Background(), params)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		ctx.JSON(http.StatusInternalServerError, genFailBody(err))
 		return
 	}
 
@@ -96,7 +104,7 @@ func getAccount(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, genFailBody("user not found"))
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		ctx.JSON(http.StatusInternalServerError, genFailBody(err))
 		return
 	}
 
@@ -128,7 +136,7 @@ func updateAccount(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		ctx.JSON(http.StatusInternalServerError, genFailBody(err))
 		return
 	}
 
@@ -149,7 +157,8 @@ func deleteAccount(ctx *gin.Context) {
 	}
 
 	if err := a.store.DeleteAccount(context.Background(), req.Id); err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		// TODO recheck/implement 404
+		ctx.JSON(http.StatusInternalServerError, genFailBody(err))
 		return
 	}
 
