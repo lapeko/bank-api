@@ -10,11 +10,11 @@ import (
 
 type Account struct {
 	ID       int64  `json:"id"`
-	Owner    string `json:"owner"`
 	Currency string `json:"currency"`
 	// should be positive
 	Balance   int64     `json:"balance"`
 	CreatedAt time.Time `json:"created_at"`
+	UserID    int64     `json:"user_id"`
 }
 
 type Entry struct {
@@ -31,4 +31,13 @@ type Transfer struct {
 	// should be positive
 	Amount    int64     `json:"amount"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type User struct {
+	ID                int64     `json:"id"`
+	FullName          string    `json:"full_name"`
+	Email             string    `json:"email"`
+	HashedPassword    string    `json:"hashed_password"`
+	PasswordChangesAt time.Time `json:"password_changes_at"`
+	CreatedAt         time.Time `json:"created_at"`
 }

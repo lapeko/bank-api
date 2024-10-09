@@ -9,17 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func deleteAccounts(t *testing.T) {
-	_, err := testDb.Exec("DELETE FROM accounts")
-	require.NoError(t, err)
-	accounts, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{Offset: 0, Limit: 1})
-	require.Empty(t, err)
-	require.Empty(t, accounts)
-}
-
 func createTestAccount(t *testing.T) *Account {
+	user := createTestUser(t)
 	params := CreateAccountParams{
-		Owner:    random.String(6),
+		UserID:   user.ID,
 		Currency: random.Currency(),
 		Balance:  random.Int64(0, 1000),
 	}
@@ -29,7 +22,7 @@ func createTestAccount(t *testing.T) *Account {
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
 
-	require.Equal(t, account.Owner, params.Owner)
+	require.Equal(t, account.UserID, params.UserID)
 	require.Equal(t, account.Balance, params.Balance)
 	require.Equal(t, account.Currency, params.Currency)
 	require.NotEmpty(t, account.ID)
@@ -39,8 +32,9 @@ func createTestAccount(t *testing.T) *Account {
 }
 
 func createTestAccountWithBalance(t *testing.T, balance int64) *Account {
+	user := createTestUser(t)
 	params := CreateAccountParams{
-		Owner:    random.String(6),
+		UserID:   user.ID,
 		Currency: random.Currency(),
 		Balance:  balance,
 	}
@@ -50,7 +44,7 @@ func createTestAccountWithBalance(t *testing.T, balance int64) *Account {
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
 
-	require.Equal(t, account.Owner, params.Owner)
+	require.Equal(t, account.UserID, params.UserID)
 	require.Equal(t, account.Balance, params.Balance)
 	require.Equal(t, account.Currency, params.Currency)
 	require.NotEmpty(t, account.ID)
@@ -60,7 +54,7 @@ func createTestAccountWithBalance(t *testing.T, balance int64) *Account {
 }
 
 func TestGetAccounts(t *testing.T) {
-	deleteAccounts(t)
+	truncateTables()
 
 	var accounts []*Account
 
@@ -89,13 +83,13 @@ func TestGetAccounts(t *testing.T) {
 		require.Equal(t, accounts[i].ID, listItem.ID)
 		require.Equal(t, accounts[i].Balance, listItem.Balance)
 		require.Equal(t, accounts[i].Currency, listItem.Currency)
-		require.Equal(t, accounts[i].Owner, listItem.Owner)
+		require.Equal(t, accounts[i].UserID, listItem.UserID)
 		require.Equal(t, accounts[i].CreatedAt, listItem.CreatedAt)
 	}
 }
 
 func TestUpdateAccount(t *testing.T) {
-	deleteAccounts(t)
+	truncateTables()
 	account := createTestAccount(t)
 	params := UpdateAccountParams{ID: account.ID, Balance: random.Int64(0, 1000000)}
 	updatedAccount, err := testQueries.UpdateAccount(context.Background(), params)
@@ -106,7 +100,7 @@ func TestUpdateAccount(t *testing.T) {
 }
 
 func TestDeleteAccount(t *testing.T) {
-	deleteAccounts(t)
+	truncateTables()
 	account := createTestAccount(t)
 	err := testQueries.DeleteAccount(context.Background(), account.ID)
 	require.NoError(t, err)

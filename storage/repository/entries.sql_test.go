@@ -48,7 +48,7 @@ func createTestEntryByOwner(t *testing.T, ownerId int64) *Entry {
 }
 
 func TestGetEntries(t *testing.T) {
-	deleteAccounts(t)
+	truncateTables()
 
 	var entries []*Entry
 
@@ -82,7 +82,7 @@ func TestGetEntries(t *testing.T) {
 }
 
 func TestGetEntriesByAccount(t *testing.T) {
-	deleteAccounts(t)
+	truncateTables()
 
 	account := createTestAccount(t)
 	otherAccount := createTestAccount(t)

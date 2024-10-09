@@ -7,7 +7,7 @@ SELECT * FROM accounts
 ORDER BY id LIMIT $1 OFFSET $2;
 
 -- name: CreateAccount :one
-INSERT INTO accounts (owner, currency, balance)
+INSERT INTO accounts (user_id, currency, balance)
 VALUES ($1, $2, $3)
 RETURNING *;
 
