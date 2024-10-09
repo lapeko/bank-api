@@ -21,12 +21,11 @@ CREATE TABLE IF NOT EXISTS "transfers" (
     "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
-CREATE INDEX IF NOT EXISTS "idx_accounts_owner" ON "accounts" ("owner");
+CREATE INDEX IF NOT EXISTS idx_accounts_owner ON "accounts" ("owner");
 CREATE INDEX IF NOT EXISTS idx_entries_account_id ON "entries" ("account_id");
 CREATE INDEX IF NOT EXISTS idx_transfers_account_from ON "transfers" ("account_from");
 CREATE INDEX IF NOT EXISTS idx_transfers_account_to ON "transfers" ("account_to");
 CREATE INDEX IF NOT EXISTS idx_transfers_account_from_to ON "transfers" ("account_from", "account_to");
-
 
 COMMENT ON COLUMN "accounts"."balance" IS 'should be positive';
 COMMENT ON COLUMN "transfers"."amount" IS 'should be positive';

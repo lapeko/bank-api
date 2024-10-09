@@ -47,7 +47,7 @@ dp-drop:
 	#docker exec -i $(DB_CONTAINER_NAME) dropdb --username=$(DB_USER) $(DB_MANUAL_TEST_NAME)
 
 migrate-gen:
-	$(GO_PATH)/bin/migrate.exe create -ext sql -dir $(MIGRATIONS_PATH) -seq init_schema
+	$(GO_PATH)/bin/migrate.exe create -ext sql -dir $(MIGRATIONS_PATH) -seq add_users_table #last argument will be used as part of the name
 
 migrate-up:
 	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) up
