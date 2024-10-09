@@ -22,7 +22,7 @@ DB_TEST_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/$(DB_TEST_NAME)?sslmo
 DB_MANUAL_TEST_CONNECTION_URL=postgres://root:1234@127.0.0.1:5432/$(DB_MANUAL_TEST_NAME)?sslmode=disable
 
 .PHONY:
-	migrate docker-create docker-drop docker-start docker-stop db-create dp-drop migrate-gen migrate-up migrate-down sqlc test mockgen
+	migrate docker-create docker-drop docker-start docker-stop db-create dp-drop migrate-gen migrate-up migrate-down migrate-up1 migrate-down1 sqlc test mockgen
 
 docker-create:
 	docker run --name $(DB_CONTAINER_NAME) -p $(DB_PORT):5432 -e POSTGRES_USER=$(DB_USER) -e POSTGRES_PASSWORD=$(DB_PASSWORD) -d postgres:alpine
@@ -58,6 +58,16 @@ migrate-down:
 	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) down
 	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_TEST_CONNECTION_URL) down
 	#$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_MANUAL_TEST_CONNECTION_URL) down
+
+migrate-up1:
+	#$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) up 1
+	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_TEST_CONNECTION_URL) up 1
+	#$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_MANUAL_TEST_CONNECTION_URL) up 1
+
+migrate-down1:
+	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_CONNECTION_URL) down 1
+	$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_TEST_CONNECTION_URL) down 1
+	#$(GO_PATH)/bin/migrate.exe -path $(MIGRATIONS_PATH) -database $(DB_MANUAL_TEST_CONNECTION_URL) down 1
 
 sqlc:
 	cd ./storage/sqlc && $(GO_PATH)/bin/sqlc.exe generate
