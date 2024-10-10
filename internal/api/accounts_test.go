@@ -65,7 +65,7 @@ func TestGetAccountApi(t *testing.T) {
 					Return(repository.Account{}, sql.ErrConnDone)
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 				matchAccountResponse(t, false, "sql: connection is already closed", nil, recorder.Body)
 			},
 		},
@@ -105,7 +105,7 @@ func TestGetAccountApi(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, path, nil)
 			require.NoError(t, err)
 
-			api := New()
+			api := GetApi()
 			api.store = store
 			api.SetUpRoutes()
 
@@ -118,7 +118,7 @@ func TestGetAccountApi(t *testing.T) {
 func randomAccount() repository.Account {
 	return repository.Account{
 		ID:       random.Int64(1, 1000),
-		Owner:    random.String(5),
+		UserID:   random.Int64(1, 1000),
 		Balance:  random.Int64(0, 1000),
 		Currency: random.Currency(),
 	}

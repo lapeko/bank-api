@@ -42,19 +42,19 @@ func createTransfer(ctx *gin.Context) {
 	}
 
 	if accFrom.Currency != accTo.Currency {
-		ctx.JSON(http.StatusBadRequest, genFailBody("accounts have different currencies"))
+		ctx.JSON(http.StatusForbidden, genFailBody("accounts have different currencies"))
 		return
 	}
 
 	if accFrom.Balance < req.Amount {
-		ctx.JSON(http.StatusBadRequest, genFailBody("insufficient funds"))
+		ctx.JSON(http.StatusForbidden, genFailBody("insufficient funds"))
 		return
 	}
 
 	res, err := a.store.TransferTX(context.Background(), repository.CreateTransferParams(req))
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, genFailBody(err))
+		ctx.JSON(http.StatusInternalServerError, genFailBody(err))
 		return
 	}
 

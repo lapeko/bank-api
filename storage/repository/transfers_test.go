@@ -8,26 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createTestTransfer(t *testing.T, accountFromID int64, accountToID int64) Transfer {
-	params := CreateTransferParams{
-		AccountFrom: accountFromID,
-		AccountTo:   accountToID,
-		Amount:      random.Int64(1, 1000),
-	}
-
-	transfer, err := testQueries.CreateTransfer(context.Background(), params)
-	require.NoError(t, err)
-	require.NotEmpty(t, transfer)
-
-	require.Equal(t, params.AccountFrom, transfer.AccountFrom)
-	require.Equal(t, params.AccountTo, transfer.AccountTo)
-	require.Equal(t, params.Amount, transfer.Amount)
-	require.NotZero(t, transfer.ID)
-	require.NotZero(t, transfer.CreatedAt)
-
-	return transfer
-}
-
 func TestCreateTransfer(t *testing.T) {
 	account1 := createTestAccount(t)
 	account2 := createTestAccount(t)
@@ -160,4 +140,24 @@ func TestListTransfersBySenderAndReceiver(t *testing.T) {
 		require.Equal(t, account1.ID, transfer.AccountFrom)
 		require.Equal(t, account2.ID, transfer.AccountTo)
 	}
+}
+
+func createTestTransfer(t *testing.T, accountFromID int64, accountToID int64) Transfer {
+	params := CreateTransferParams{
+		AccountFrom: accountFromID,
+		AccountTo:   accountToID,
+		Amount:      random.Int64(1, 1000),
+	}
+
+	transfer, err := testQueries.CreateTransfer(context.Background(), params)
+	require.NoError(t, err)
+	require.NotEmpty(t, transfer)
+
+	require.Equal(t, params.AccountFrom, transfer.AccountFrom)
+	require.Equal(t, params.AccountTo, transfer.AccountTo)
+	require.Equal(t, params.Amount, transfer.Amount)
+	require.NotZero(t, transfer.ID)
+	require.NotZero(t, transfer.CreatedAt)
+
+	return transfer
 }

@@ -16,12 +16,6 @@ var (
 	testDb      *sql.DB
 )
 
-func truncateTables() {
-	if _, err := testDb.Exec("TRUNCATE users CASCADE"); err != nil {
-		log.Fatalln("truncateTables failed", err)
-	}
-}
-
 func TestMain(m *testing.M) {
 	var err error
 	testDb, err = sql.Open(dbDriverStr, dbConnStr)
@@ -35,4 +29,10 @@ func TestMain(m *testing.M) {
 	testQueries = New(testDb)
 
 	os.Exit(m.Run())
+}
+
+func truncateTables() {
+	if _, err := testDb.Exec("TRUNCATE users CASCADE"); err != nil {
+		log.Fatalln("truncateTables failed", err)
+	}
 }

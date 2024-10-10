@@ -9,27 +9,6 @@ import (
 	"testing"
 )
 
-func createTestUser(t *testing.T) *User {
-	params := CreateUserParams{
-		FullName:       random.String(10),
-		Email:          fmt.Sprintf("%s@email.com", random.String(6)),
-		HashedPassword: "secret",
-	}
-
-	user, err := testQueries.CreateUser(context.Background(), params)
-
-	require.NoError(t, err)
-	require.NotEmpty(t, user)
-
-	require.Equal(t, user.FullName, params.FullName)
-	require.Equal(t, user.Email, user.Email)
-	require.Equal(t, user.HashedPassword, user.HashedPassword)
-	require.NotZero(t, user.ID)
-	require.NotZero(t, user.CreatedAt)
-
-	return &user
-}
-
 func TestGetUser(t *testing.T) {
 	truncateTables()
 	user := createTestUser(t)
@@ -52,4 +31,25 @@ func TestGetNotExistUser(t *testing.T) {
 
 	require.Zero(t, user)
 	require.Equal(t, err, sql.ErrNoRows)
+}
+
+func createTestUser(t *testing.T) *User {
+	params := CreateUserParams{
+		FullName:       random.String(10),
+		Email:          fmt.Sprintf("%s@email.com", random.String(6)),
+		HashedPassword: "secret",
+	}
+
+	user, err := testQueries.CreateUser(context.Background(), params)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, user)
+
+	require.Equal(t, user.FullName, params.FullName)
+	require.Equal(t, user.Email, user.Email)
+	require.Equal(t, user.HashedPassword, user.HashedPassword)
+	require.NotZero(t, user.ID)
+	require.NotZero(t, user.CreatedAt)
+
+	return &user
 }

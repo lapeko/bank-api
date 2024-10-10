@@ -8,45 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createTestEntry(t *testing.T) *Entry {
-	account := createTestAccount(t)
-	params := CreateEntryParams{
-		AccountID: account.ID,
-		Amount:    random.Int64(-1000, 1000),
-	}
-
-	entry, err := testQueries.CreateEntry(context.Background(), params)
-
-	require.NoError(t, err)
-	require.NotEmpty(t, entry)
-
-	require.Equal(t, params.AccountID, entry.AccountID)
-	require.Equal(t, params.Amount, entry.Amount)
-	require.NotEmpty(t, entry.ID)
-	require.NotEmpty(t, entry.CreatedAt)
-
-	return &entry
-}
-
-func createTestEntryByOwner(t *testing.T, ownerId int64) *Entry {
-	params := CreateEntryParams{
-		AccountID: ownerId,
-		Amount:    random.Int64(-1000, 1000),
-	}
-
-	entry, err := testQueries.CreateEntry(context.Background(), params)
-
-	require.NoError(t, err)
-	require.NotEmpty(t, entry)
-
-	require.Equal(t, params.AccountID, entry.AccountID)
-	require.Equal(t, params.Amount, entry.Amount)
-	require.NotEmpty(t, entry.ID)
-	require.NotEmpty(t, entry.CreatedAt)
-
-	return &entry
-}
-
 func TestGetEntries(t *testing.T) {
 	truncateTables()
 
@@ -114,4 +75,43 @@ func TestGetEntriesByAccount(t *testing.T) {
 		require.NotEmpty(t, entry.ID)
 		require.NotEmpty(t, entry.CreatedAt)
 	}
+}
+
+func createTestEntry(t *testing.T) *Entry {
+	account := createTestAccount(t)
+	params := CreateEntryParams{
+		AccountID: account.ID,
+		Amount:    random.Int64(-1000, 1000),
+	}
+
+	entry, err := testQueries.CreateEntry(context.Background(), params)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, entry)
+
+	require.Equal(t, params.AccountID, entry.AccountID)
+	require.Equal(t, params.Amount, entry.Amount)
+	require.NotEmpty(t, entry.ID)
+	require.NotEmpty(t, entry.CreatedAt)
+
+	return &entry
+}
+
+func createTestEntryByOwner(t *testing.T, ownerId int64) *Entry {
+	params := CreateEntryParams{
+		AccountID: ownerId,
+		Amount:    random.Int64(-1000, 1000),
+	}
+
+	entry, err := testQueries.CreateEntry(context.Background(), params)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, entry)
+
+	require.Equal(t, params.AccountID, entry.AccountID)
+	require.Equal(t, params.Amount, entry.Amount)
+	require.NotEmpty(t, entry.ID)
+	require.NotEmpty(t, entry.CreatedAt)
+
+	return &entry
 }

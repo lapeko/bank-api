@@ -9,50 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createTestAccount(t *testing.T) *Account {
-	user := createTestUser(t)
-	params := CreateAccountParams{
-		UserID:   user.ID,
-		Currency: random.Currency(),
-		Balance:  random.Int64(0, 1000),
-	}
-
-	account, err := testQueries.CreateAccount(context.Background(), params)
-
-	require.NoError(t, err)
-	require.NotEmpty(t, account)
-
-	require.Equal(t, account.UserID, params.UserID)
-	require.Equal(t, account.Balance, params.Balance)
-	require.Equal(t, account.Currency, params.Currency)
-	require.NotEmpty(t, account.ID)
-	require.NotEmpty(t, account.CreatedAt)
-
-	return &account
-}
-
-func createTestAccountWithBalance(t *testing.T, balance int64) *Account {
-	user := createTestUser(t)
-	params := CreateAccountParams{
-		UserID:   user.ID,
-		Currency: random.Currency(),
-		Balance:  balance,
-	}
-
-	account, err := testQueries.CreateAccount(context.Background(), params)
-
-	require.NoError(t, err)
-	require.NotEmpty(t, account)
-
-	require.Equal(t, account.UserID, params.UserID)
-	require.Equal(t, account.Balance, params.Balance)
-	require.Equal(t, account.Currency, params.Currency)
-	require.NotEmpty(t, account.ID)
-	require.NotEmpty(t, account.CreatedAt)
-
-	return &account
-}
-
 func TestGetAccounts(t *testing.T) {
 	truncateTables()
 
@@ -108,4 +64,48 @@ func TestDeleteAccount(t *testing.T) {
 	require.Empty(t, emptyAcc)
 	require.NotEmpty(t, err)
 	require.Equal(t, err, sql.ErrNoRows)
+}
+
+func createTestAccount(t *testing.T) *Account {
+	user := createTestUser(t)
+	params := CreateAccountParams{
+		UserID:   user.ID,
+		Currency: random.Currency(),
+		Balance:  random.Int64(0, 1000),
+	}
+
+	account, err := testQueries.CreateAccount(context.Background(), params)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, account)
+
+	require.Equal(t, account.UserID, params.UserID)
+	require.Equal(t, account.Balance, params.Balance)
+	require.Equal(t, account.Currency, params.Currency)
+	require.NotEmpty(t, account.ID)
+	require.NotEmpty(t, account.CreatedAt)
+
+	return &account
+}
+
+func createTestAccountWithBalance(t *testing.T, balance int64) *Account {
+	user := createTestUser(t)
+	params := CreateAccountParams{
+		UserID:   user.ID,
+		Currency: random.Currency(),
+		Balance:  balance,
+	}
+
+	account, err := testQueries.CreateAccount(context.Background(), params)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, account)
+
+	require.Equal(t, account.UserID, params.UserID)
+	require.Equal(t, account.Balance, params.Balance)
+	require.Equal(t, account.Currency, params.Currency)
+	require.NotEmpty(t, account.ID)
+	require.NotEmpty(t, account.CreatedAt)
+
+	return &account
 }
