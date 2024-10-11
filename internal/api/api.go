@@ -45,6 +45,7 @@ func (a *Api) SetUpRoutes() {
 
 	setUpAccounts(a.router)
 	setUpTransfers(a.router)
+	setUpUsers(a.router)
 }
 
 func (a *Api) Start() {

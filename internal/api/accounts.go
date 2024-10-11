@@ -45,8 +45,8 @@ func createAccount(ctx *gin.Context) {
 			switch e.Code.Name() {
 			case "foreign_key_violation", "unique_violation":
 				ctx.JSON(http.StatusForbidden, genFailBody(err))
+				return
 			}
-			return
 		}
 		ctx.JSON(http.StatusInternalServerError, genFailBody(err))
 		return
