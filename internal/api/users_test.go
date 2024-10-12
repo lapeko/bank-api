@@ -17,6 +17,33 @@ import (
 	"time"
 )
 
+type UserParamsCorrespond struct {
+	createUserRequest
+}
+
+func (req UserParamsCorrespond) String() string {
+	return fmt.Sprintf(
+		"Matches CreateUserParams with FullName: %s, Email: %s, and a valid hashed password",
+		req.FullName,
+		req.Email,
+	)
+}
+func (req UserParamsCorrespond) Matches(x interface{}) bool {
+	if params, ok := x.(repository.CreateUserParams); ok {
+		if req.FullName != params.FullName || req.Email != params.Email {
+			return false
+		}
+		if err := bcrypt.CompareHashAndPassword([]byte(params.HashedPassword), []byte(req.Password)); err != nil {
+			return false
+		}
+		return true
+	}
+	return false
+}
+func userParamsCorrespond(c *createUserRequest) gomock.Matcher {
+	return UserParamsCorrespond{*c}
+}
+
 // TODO cover errors
 func TestCreateUser(t *testing.T) {
 	name := random.String(6)
@@ -46,7 +73,7 @@ func TestCreateUser(t *testing.T) {
 	}{{name: "ok", request: req, buildStubs: func(store *mockdb.MockStore) {
 		store.
 			EXPECT().
-			CreateUser(gomock.Any(), gomock.Any()).
+			CreateUser(gomock.Any(), userParamsCorrespond(req)).
 			Times(1).
 			Return(user, nil)
 	}, checkResponse: func(recorder *httptest.ResponseRecorder) {
