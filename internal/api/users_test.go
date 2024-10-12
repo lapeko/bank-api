@@ -23,10 +23,12 @@ func TestCreateUser(t *testing.T) {
 	req := &createUserRequest{
 		FullName: name,
 		Email:    fmt.Sprintf("%s@mail.com", name),
-		Password: name,
+		Password: random.String(10),
 	}
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), 4)
 	require.NoError(t, err)
+	require.NoError(t, bcrypt.CompareHashAndPassword(hashedPass, []byte(req.Password)))
+
 	user := repository.User{
 		ID:                random.Int64(1, 1000),
 		Email:             req.Email,
@@ -35,6 +37,7 @@ func TestCreateUser(t *testing.T) {
 		CreatedAt:         time.Now(),
 		PasswordChangesAt: time.Now(),
 	}
+
 	cases := []struct {
 		name          string
 		request       *createUserRequest
