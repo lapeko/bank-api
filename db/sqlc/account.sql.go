@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils"
 )
 
 const createAccount = `-- name: CreateAccount :one
@@ -16,9 +18,9 @@ RETURNING id, user_id, currency, balance, created_at
 `
 
 type CreateAccountParams struct {
-	UserID   int64       `json:"user_id"`
-	Currency interface{} `json:"currency"`
-	Balance  int64       `json:"balance"`
+	UserID   int64          `json:"user_id"`
+	Currency utils.Currency `json:"currency"`
+	Balance  int64          `json:"balance"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {

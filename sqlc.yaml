@@ -9,3 +9,6 @@ sql:
       out: "./db/sqlc"
       sql_package: "pgx/v5"
       emit_json_tags: true
+      overrides:
+      - db_type: currency
+        go_type: github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils.Currency

@@ -6,12 +6,13 @@ package db
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils"
 )
 
 type Account struct {
-	ID       int64       `json:"id"`
-	UserID   int64       `json:"user_id"`
-	Currency interface{} `json:"currency"`
+	ID       int64          `json:"id"`
+	UserID   int64          `json:"user_id"`
+	Currency utils.Currency `json:"currency"`
 	// should be positive
 	Balance   int64              `json:"balance"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
@@ -34,10 +35,9 @@ type Transfer struct {
 }
 
 type User struct {
-	ID                int64              `json:"id"`
-	FullName          string             `json:"full_name"`
-	Email             string             `json:"email"`
-	HashedPassword    string             `json:"hashed_password"`
-	PasswordChangesAt pgtype.Timestamp   `json:"password_changes_at"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	ID             int64              `json:"id"`
+	FullName       string             `json:"full_name"`
+	Email          string             `json:"email"`
+	HashedPassword string             `json:"hashed_password"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
