@@ -5,6 +5,7 @@ import (
 	"fmt"
 	logOrigin "log"
 	"os"
+	"os/exec"
 
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -20,7 +21,6 @@ const (
 var errLog = logOrigin.New(os.Stderr, "[test-utils] testcontainer initialization failure. Error: ", logOrigin.Lshortfile)
 
 func SetupTestDb(ctx context.Context) (string, func() error) {
-
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image:        "postgres:alpine",
@@ -36,7 +36,7 @@ func SetupTestDb(ctx context.Context) (string, func() error) {
 	})
 
 	if err != nil {
-		errLog.Fatalf("%q", err.Error())
+		errLog.Fatalf("%q", err)
 	}
 
 	terminate := func() error {
@@ -46,7 +46,7 @@ func SetupTestDb(ctx context.Context) (string, func() error) {
 	host, err := container.Host(ctx)
 	if err != nil {
 		if e := terminate(); e != nil {
-			errLog.Printf("%q", e.Error())
+			errLog.Printf("%q", e)
 		}
 		errLog.Fatalf("%q", err)
 	}
@@ -54,12 +54,19 @@ func SetupTestDb(ctx context.Context) (string, func() error) {
 	port, err := container.MappedPort(ctx, exposedPort)
 	if err != nil {
 		if e := terminate(); e != nil {
-			errLog.Printf("%q", e.Error())
+			errLog.Printf("%q", e)
 		}
 		errLog.Fatalf("%q", err)
 	}
 
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPass, host, port.Port(), dbName)
+
+	cmd := exec.Command("migrate", "-source", "file://../migration", "-database", dsn, "-verbose", "up")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[migrate] %s\n", output)
+		errLog.Fatalf("migrate command failed: %v", err)
+	}
 
 	return dsn, terminate
 }
