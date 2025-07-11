@@ -1,12 +1,15 @@
 services:
-  postgres:
+  db_dev:
     image: postgres:alpine
     restart: always
     volumes:
-    - /opt/docker/postgres/bank:/var/lib/postgresql
+    - postgres:/var/lib/postgresql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
       POSTGRES_DB: bank
     ports:
     - "5432:5432"
+
+volumes:
+  postgres:
