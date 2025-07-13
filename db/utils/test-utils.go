@@ -1,72 +1,56 @@
 package utils
 
 import (
-	"context"
 	"fmt"
-	logOrigin "log"
-	"os"
-	"os/exec"
+	"math/rand/v2"
+	"strings"
 
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
+	"golang.org/x/crypto/bcrypt"
 )
 
-const (
-	exposedPort = "5432/tcp"
-	dbUser      = "postgres"
-	dbPass      = "1234"
-	dbName      = "bank_test"
-)
+const AlphaSize int = 26
 
-var errLog = logOrigin.New(os.Stderr, "[test-utils] testcontainer initialization failure. Error: ", logOrigin.Lshortfile)
+var Alphabet []byte = make([]byte, AlphaSize, AlphaSize)
 
-func SetupTestDb(ctx context.Context) (string, func() error) {
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        "postgres:alpine",
-			ExposedPorts: []string{exposedPort},
-			Env: map[string]string{
-				"POSTGRES_USER":     dbUser,
-				"POSTGRES_PASSWORD": dbPass,
-				"POSTGRES_DB":       dbName,
-			},
-			WaitingFor: wait.ForListeningPort(exposedPort),
-		},
-		Started: true,
-	})
-
-	if err != nil {
-		errLog.Fatalf("%q", err)
+func init() {
+	for i := range Alphabet {
+		Alphabet[i] = 'a' + byte(i)
 	}
+}
 
-	terminate := func() error {
-		return container.Terminate(ctx)
+func GenRandString(size int) string {
+	var sb strings.Builder
+	for i := 0; i < size; i++ {
+		sb.WriteByte(Alphabet[rand.IntN(AlphaSize)])
 	}
+	return sb.String()
+}
 
-	host, err := container.Host(ctx)
-	if err != nil {
-		if e := terminate(); e != nil {
-			errLog.Printf("%q", e)
-		}
-		errLog.Fatalf("%q", err)
+func GenRandFullName() string {
+	firstName := CapitalizeWord(GenRandString(RandIntInRange(2, 10)))
+	lastName := CapitalizeWord(GenRandString(RandIntInRange(2, 10)))
+	return fmt.Sprintf("%s %s", firstName, lastName)
+}
+
+func GenRandCurrency() Currency {
+	switch rand.IntN(3) {
+	case 0:
+		return CurrencyEURO
+	case 1:
+		return CurrencyPLN
+	default:
+		return CurrencyUSD
 	}
+}
 
-	port, err := container.MappedPort(ctx, exposedPort)
-	if err != nil {
-		if e := terminate(); e != nil {
-			errLog.Printf("%q", e)
-		}
-		errLog.Fatalf("%q", err)
-	}
+func GetRandEmail() string {
+	domain3 := GenRandString(RandIntInRange(2, 10))
+	domain2 := GenRandString(RandIntInRange(2, 10))
+	domain1 := GenRandString(RandIntInRange(2, 3))
+	return fmt.Sprintf("%s@%s.%s", domain3, domain2, domain1)
+}
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPass, host, port.Port(), dbName)
-
-	cmd := exec.Command("migrate", "-source", "file://../migration", "-database", dsn, "-verbose", "up")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[migrate] %s\n", output)
-		errLog.Fatalf("migrate command failed: %v", err)
-	}
-
-	return dsn, terminate
+func GenRandHashedPassword() string {
+	pass, _ := bcrypt.GenerateFromPassword([]byte(GenRandString(10)), bcrypt.MinCost)
+	return string(pass)
 }
