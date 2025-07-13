@@ -10,27 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func randCurrency() utils.Currency {
-	switch rand.Int() % 3 {
-	case 0:
-		return utils.CurrencyEURO
-	case 1:
-		return utils.CurrencyPLN
-	default:
-		return utils.CurrencyUSD
-	}
-}
-
-func init() {
-
-}
-
-func TestAccount(t *testing.T) {
-	user := createRandomUser(t)
-
+func createRandomAccount(t *testing.T, user *User) *Account {
 	want := CreateAccountParams{
 		UserID:   user.ID,
-		Currency: randCurrency(),
+		Currency: utils.GenRandCurrency(),
 		Balance:  rand.Int63(),
 	}
 
@@ -47,4 +30,10 @@ func TestAccount(t *testing.T) {
 	require.Equal(t, got.Currency, want.Currency)
 	require.Equal(t, got.Balance, want.Balance)
 	require.NotZero(t, got.CreatedAt)
+
+	return &got
+}
+
+func TestAccount(t *testing.T) {
+	createRandomAccount(t, createRandomUser(t))
 }
