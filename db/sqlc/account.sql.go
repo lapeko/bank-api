@@ -103,6 +103,31 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 	return items, nil
 }
 
+const offsetBalance = `-- name: OffsetBalance :one
+UPDATE accounts
+SET balance = balance + $2
+WHERE id = $1
+RETURNING id, user_id, currency, balance, created_at
+`
+
+type OffsetBalanceParams struct {
+	ID    int64 `json:"id"`
+	Delta int64 `json:"delta"`
+}
+
+func (q *Queries) OffsetBalance(ctx context.Context, arg OffsetBalanceParams) (Account, error) {
+	row := q.db.QueryRow(ctx, offsetBalance, arg.ID, arg.Delta)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Currency,
+		&i.Balance,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateAccountBalance = `-- name: UpdateAccountBalance :one
 UPDATE accounts
 SET balance = $2
