@@ -9,6 +9,7 @@ import (
 
 type Store interface {
 	execTX(context.Context, func(*Queries) error) error
+	GetQueries() *Queries
 }
 
 type store struct {
@@ -35,4 +36,8 @@ func (s *store) execTX(ctx context.Context, fn func(*Queries) error) error {
 	}
 
 	return tx.Commit(ctx)
+}
+
+func (s *store) GetQueries() *Queries {
+	return s.Queries
 }

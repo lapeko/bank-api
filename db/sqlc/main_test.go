@@ -11,12 +11,13 @@ import (
 )
 
 var (
-	sqlcQueries *Queries
-	log         = logOrigin.New(os.Stderr, "[db] ", logOrigin.Lshortfile)
+	testStore Store
+	log       = logOrigin.New(os.Stderr, "[db] ", logOrigin.Lshortfile)
+	ctx       context.Context
 )
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
+	ctx = context.Background()
 	dsn, terminate := utils.SetupTestDb(ctx)
 	dbConnection, err := pgx.Connect(ctx, dsn)
 
@@ -27,7 +28,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("connection failure. Error: %q", err)
 	}
 
-	sqlcQueries = New(dbConnection)
+	testStore = NewStore(dbConnection)
 	code := m.Run()
 
 	if err := dbConnection.Close(ctx); err != nil {

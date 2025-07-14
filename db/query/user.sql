@@ -19,7 +19,7 @@ FROM users
 LIMIT $2
 OFFSET $1;
 
--- name: UpdateUserName :one
+-- name: UpdateUserFullName :one
 UPDATE users
 SET full_name = $2
 WHERE id = $1
