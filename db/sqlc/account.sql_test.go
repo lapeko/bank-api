@@ -18,6 +18,10 @@ func createRandomAccount(t *testing.T, user User) Account {
 		Balance:  rand.Int64N(1e6),
 	}
 
+	return createAccountWithParams(t, want)
+}
+
+func createAccountWithParams(t *testing.T, want CreateAccountParams) Account {
 	got, err := testStore.GetQueries().CreateAccount(ctx, want)
 
 	require.NoError(t, err)

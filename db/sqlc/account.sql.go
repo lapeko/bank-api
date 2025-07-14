@@ -65,6 +65,44 @@ func (q *Queries) GetAccountById(ctx context.Context, id int64) (Account, error)
 	return i, err
 }
 
+const getAccountsByIdForUpdate = `-- name: GetAccountsByIdForUpdate :many
+SELECT id, user_id, currency, balance, created_at
+FROM accounts
+WHERE id IN ($1, $2)
+FOR UPDATE
+`
+
+type GetAccountsByIdForUpdateParams struct {
+	ID   int64 `json:"id"`
+	ID_2 int64 `json:"id_2"`
+}
+
+func (q *Queries) GetAccountsByIdForUpdate(ctx context.Context, arg GetAccountsByIdForUpdateParams) ([]Account, error) {
+	rows, err := q.db.Query(ctx, getAccountsByIdForUpdate, arg.ID, arg.ID_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Account
+	for rows.Next() {
+		var i Account
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Currency,
+			&i.Balance,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAccounts = `-- name: ListAccounts :many
 SELECT id, user_id, currency, balance, created_at
 FROM accounts

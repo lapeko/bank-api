@@ -8,6 +8,12 @@ SELECT *
 FROM accounts
 WHERE id = $1;
 
+-- name: GetAccountsByIdForUpdate :many
+SELECT *
+FROM accounts
+WHERE id IN ($1, $2)
+FOR UPDATE;
+
 -- name: ListAccounts :many
 SELECT *
 FROM accounts
