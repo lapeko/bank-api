@@ -12,6 +12,7 @@ WHERE id = $1;
 SELECT *
 FROM accounts
 WHERE id IN ($1, $2)
+ORDER BY id
 FOR UPDATE;
 
 -- name: ListAccounts :many

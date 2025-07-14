@@ -69,6 +69,7 @@ const getAccountsByIdForUpdate = `-- name: GetAccountsByIdForUpdate :many
 SELECT id, user_id, currency, balance, created_at
 FROM accounts
 WHERE id IN ($1, $2)
+ORDER BY id
 FOR UPDATE
 `
 

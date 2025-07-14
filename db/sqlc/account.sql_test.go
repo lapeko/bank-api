@@ -62,7 +62,6 @@ func TestDeleteAccount(t *testing.T) {
 
 func TestListAccounts(t *testing.T) {
 	defer cleanTestStore(t)
-	user := createRandomUser(t)
 
 	params := ListAccountsParams{Offset: 0, Limit: 2}
 	q := testStore.GetQueries()
@@ -72,7 +71,7 @@ func TestListAccounts(t *testing.T) {
 
 	var want []Account
 	for i := 0; i < 2; i++ {
-		want = append(want, createRandomAccount(t, user))
+		want = append(want, createRandomAccount(t, createRandomUser(t)))
 	}
 	got, err = q.ListAccounts(ctx, params)
 	require.NoError(t, err)

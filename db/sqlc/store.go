@@ -54,11 +54,18 @@ func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount in
 
 	return s.execTX(ctx, func(q *Queries) error {
 		accs, err := q.GetAccountsByIdForUpdate(ctx, GetAccountsByIdForUpdateParams{accIdFrom, accIdTo})
+		accFrom, accTo := accs[0], accs[1]
+		if accs[0].ID == accIdTo {
+			accFrom, accTo = accTo, accFrom
+		}
 		if err != nil {
 			return err
 		}
-		if accs[0].Currency != accs[1].Currency {
+		if accFrom.Currency != accTo.Currency {
 			return errors.New("currency must be same for money transfer")
+		}
+		if accFrom.Balance < amount {
+			return errors.New("insufficient funds")
 		}
 		if _, err := q.CreateEntry(ctx, CreateEntryParams{accIdFrom, -amount}); err != nil {
 			return err
