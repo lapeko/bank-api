@@ -2,7 +2,6 @@ package db
 
 import (
 	"errors"
-	"fmt"
 	"math/rand/v2"
 	"testing"
 
@@ -18,9 +17,6 @@ func createRandomAccount(t *testing.T, user User) Account {
 		Currency: utils.GenRandCurrency(),
 		Balance:  rand.Int64N(1e6),
 	}
-
-	fmt.Println()
-	fmt.Println(want.Currency)
 
 	got, err := testStore.GetQueries().CreateAccount(ctx, want)
 
