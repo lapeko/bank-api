@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -10,6 +11,7 @@ import (
 type Store interface {
 	execTX(context.Context, func(*Queries) error) error
 	GetQueries() *Queries
+	TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount int64) error
 }
 
 type store struct {
@@ -40,4 +42,39 @@ func (s *store) execTX(ctx context.Context, fn func(*Queries) error) error {
 
 func (s *store) GetQueries() *Queries {
 	return s.Queries
+}
+
+func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount int64) error {
+	if amount <= 0 {
+		return errors.New("amount should be positive")
+	}
+	if accIdFrom == accIdTo {
+		return errors.New("transfer accounts should not be same")
+	}
+
+	return s.execTX(ctx, func(q *Queries) error {
+		accs, err := q.GetAccountsByIdForUpdate(ctx, GetAccountsByIdForUpdateParams{accIdFrom, accIdTo})
+		if err != nil {
+			return err
+		}
+		if accs[0].Currency != accs[1].Currency {
+			return errors.New("currency must be same for money transfer")
+		}
+		if _, err := q.CreateEntry(ctx, CreateEntryParams{accIdFrom, -amount}); err != nil {
+			return err
+		}
+		if _, err := q.CreateEntry(ctx, CreateEntryParams{accIdTo, amount}); err != nil {
+			return err
+		}
+		if _, err := q.CreateTransfer(ctx, CreateTransferParams{accIdFrom, accIdTo, amount}); err != nil {
+			return err
+		}
+		if _, err := q.OffsetBalance(ctx, OffsetBalanceParams{accIdFrom, -amount}); err != nil {
+			return err
+		}
+		if _, err := q.OffsetBalance(ctx, OffsetBalanceParams{accIdTo, amount}); err != nil {
+			return err
+		}
+		return nil
+	})
 }
