@@ -82,7 +82,7 @@ func TestListAccounts_QueryError(t *testing.T) {
 	params := ListAccountsParams{Offset: 0, Limit: 2}
 	wantError := errors.New(utils.GenRandString(10))
 
-	dbMock := new(DBTXMock)
+	dbMock := new(dbConnMock)
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, wantError)
 
 	gotAccounts, gotError := New(dbMock).ListAccounts(ctx, params)
@@ -95,8 +95,8 @@ func TestListAccounts_ScanError(t *testing.T) {
 	params := ListAccountsParams{Offset: 0, Limit: 2}
 	wantError := errors.New(utils.GenRandString(10))
 
-	dbMock := new(DBTXMock)
-	rowsMock := new(RowsMock)
+	dbMock := new(dbConnMock)
+	rowsMock := new(rowsMock)
 	rowsMock.On("Next").Return(true)
 	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(wantError)
 	rowsMock.On("Close").Return()
@@ -115,8 +115,8 @@ func TestListAccounts_RowsError(t *testing.T) {
 	params := ListAccountsParams{Offset: 0, Limit: 2}
 	wantError := errors.New(utils.GenRandString(10))
 
-	dbMock := new(DBTXMock)
-	rowsMock := new(RowsMock)
+	dbMock := new(dbConnMock)
+	rowsMock := new(rowsMock)
 	rowsMock.On("Next").Once().Return(true)
 	rowsMock.On("Next").Once().Return(false)
 	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)

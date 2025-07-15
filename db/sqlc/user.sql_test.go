@@ -74,7 +74,7 @@ func TestListUsers_QueryError(t *testing.T) {
 	params := ListUsersParams{Offset: 0, Limit: 2}
 	wantError := errors.New(utils.GenRandString(10))
 
-	dbMock := new(DBTXMock)
+	dbMock := new(dbConnMock)
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, wantError)
 
 	gotUsers, gotError := New(dbMock).ListUsers(ctx, params)
@@ -87,8 +87,8 @@ func TestListUsers_ScanError(t *testing.T) {
 	params := ListUsersParams{Offset: 0, Limit: 2}
 	wantError := errors.New(utils.GenRandString(10))
 
-	dbMock := new(DBTXMock)
-	rowsMock := new(RowsMock)
+	dbMock := new(dbConnMock)
+	rowsMock := new(rowsMock)
 	rowsMock.On("Next").Return(true)
 	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(wantError)
 	rowsMock.On("Close").Return()
@@ -107,8 +107,8 @@ func TestListUsers_RowsError(t *testing.T) {
 	params := ListUsersParams{Offset: 0, Limit: 2}
 	wantError := errors.New(utils.GenRandString(10))
 
-	dbMock := new(DBTXMock)
-	rowsMock := new(RowsMock)
+	dbMock := new(dbConnMock)
+	rowsMock := new(rowsMock)
 	rowsMock.On("Next").Once().Return(true)
 	rowsMock.On("Next").Once().Return(false)
 	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)

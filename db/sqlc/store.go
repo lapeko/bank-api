@@ -3,10 +3,14 @@ package db
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/jackc/pgx/v5"
 )
+
+type DBConn interface {
+	DBTX
+	Begin(ctx context.Context) (pgx.Tx, error)
+}
 
 type Store interface {
 	execTX(context.Context, func(*Queries) error) error
@@ -15,11 +19,11 @@ type Store interface {
 }
 
 type store struct {
-	db      *pgx.Conn
+	db      DBConn
 	Queries *Queries
 }
 
-func NewStore(db *pgx.Conn) Store {
+func NewStore(db DBConn) Store {
 	return &store{db: db, Queries: New(db)}
 }
 
@@ -32,7 +36,7 @@ func (s *store) execTX(ctx context.Context, fn func(*Queries) error) error {
 
 	if err := fn(s.Queries.WithTx(tx)); err != nil {
 		if e := tx.Rollback(ctx); e != nil {
-			return fmt.Errorf("rallback error: %w. transaction error: %w", e, err)
+			return errors.Join(err, e)
 		}
 		return err
 	}
@@ -54,12 +58,12 @@ func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount in
 
 	return s.execTX(ctx, func(q *Queries) error {
 		accs, err := q.GetAccountsByIdForUpdate(ctx, GetAccountsByIdForUpdateParams{accIdFrom, accIdTo})
+		if err != nil {
+			return err
+		}
 		accFrom, accTo := accs[0], accs[1]
 		if accs[0].ID == accIdTo {
 			accFrom, accTo = accTo, accFrom
-		}
-		if err != nil {
-			return err
 		}
 		if accFrom.Currency != accTo.Currency {
 			return errors.New("currency must be same for money transfer")

@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils"
 )
 
@@ -19,7 +19,7 @@ var (
 func TestMain(m *testing.M) {
 	ctx = context.Background()
 	dsn, terminate := utils.SetupTestDb(ctx)
-	dbConnection, err := pgx.Connect(ctx, dsn)
+	dbConnection, err := pgxpool.New(ctx, dsn)
 
 	if err != nil {
 		if e := terminate(); e != nil {
@@ -31,10 +31,7 @@ func TestMain(m *testing.M) {
 	testStore = NewStore(dbConnection)
 	code := m.Run()
 
-	if err := dbConnection.Close(ctx); err != nil {
-		log.Printf("connection close failure. Error: %q", err)
-		code = 1
-	}
+	dbConnection.Close()
 
 	if err := terminate(); err != nil {
 		log.Printf("container termination failure. Error: %q", err)
