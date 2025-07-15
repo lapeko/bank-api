@@ -42,6 +42,7 @@ func TestTransferMoney(t *testing.T) {
 
 func TestTransferMoney_Concurrently(t *testing.T) {
 	defer cleanTestStore(t)
+
 	store := testStore
 
 	accBalance := utils.RandInt64InRange(1e5, 1e6)

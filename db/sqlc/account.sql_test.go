@@ -60,6 +60,79 @@ func TestDeleteAccount(t *testing.T) {
 	require.Empty(t, accById)
 }
 
+func TestGetAccountsByIdForUpdate(t *testing.T) {
+	defer cleanTestStore(t)
+
+	var accs []Account
+	var userIds []int64
+	for i := 0; i < 2; i++ {
+		usr := createRandomUser(t)
+		userIds = append(userIds, usr.ID)
+		accs = append(accs, createRandomAccount(t, usr))
+	}
+
+	gotAccs, err := testStore.GetQueries().GetAccountsByIdForUpdate(ctx, GetAccountsByIdForUpdateParams{userIds[0], userIds[1]})
+	require.NoError(t, err)
+	require.Equal(t, gotAccs[0], accs[0])
+	require.Equal(t, gotAccs[1], accs[1])
+}
+
+func TestGetAccountsByIdForUpdate_QueryError(t *testing.T) {
+	params := GetAccountsByIdForUpdateParams{}
+	wantError := errors.New(utils.GenRandString(10))
+
+	dbMock := new(dbConnMock)
+	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, wantError)
+
+	gotAccounts, gotError := New(dbMock).GetAccountsByIdForUpdate(ctx, params)
+	require.Nil(t, gotAccounts)
+	require.ErrorIs(t, gotError, wantError)
+	dbMock.AssertCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestGetAccountsByIdForUpdate_ScanError(t *testing.T) {
+	params := GetAccountsByIdForUpdateParams{}
+	wantError := errors.New(utils.GenRandString(10))
+
+	dbMock := new(dbConnMock)
+	rowsMock := new(rowsMock)
+	rowsMock.On("Next").Return(true)
+	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(wantError)
+	rowsMock.On("Close").Return()
+	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(rowsMock, nil)
+
+	gotAccounts, gotError := New(dbMock).GetAccountsByIdForUpdate(ctx, params)
+	require.Nil(t, gotAccounts)
+	require.ErrorIs(t, gotError, wantError)
+	dbMock.AssertCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	rowsMock.AssertCalled(t, "Next")
+	rowsMock.AssertCalled(t, "Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	rowsMock.AssertCalled(t, "Close")
+}
+
+func TestGetAccountsByIdForUpdate_RowsError(t *testing.T) {
+	params := GetAccountsByIdForUpdateParams{}
+	wantError := errors.New(utils.GenRandString(10))
+
+	dbMock := new(dbConnMock)
+	rowsMock := new(rowsMock)
+	rowsMock.On("Next").Once().Return(true)
+	rowsMock.On("Next").Once().Return(false)
+	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	rowsMock.On("Err").Return(wantError)
+	rowsMock.On("Close").Return()
+	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(rowsMock, nil)
+
+	gotUsers, gotError := New(dbMock).GetAccountsByIdForUpdate(ctx, params)
+	require.Nil(t, gotUsers)
+	require.ErrorIs(t, gotError, wantError)
+	dbMock.AssertCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	rowsMock.AssertCalled(t, "Next")
+	rowsMock.AssertCalled(t, "Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	rowsMock.AssertCalled(t, "Err")
+	rowsMock.AssertCalled(t, "Close")
+}
+
 func TestListAccounts(t *testing.T) {
 	defer cleanTestStore(t)
 
