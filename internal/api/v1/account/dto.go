@@ -2,7 +2,7 @@ package account
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
 )
 
 type accountWithUserInfo struct {
@@ -17,7 +17,7 @@ type accountWithUserInfo struct {
 
 type createAccountRequest struct {
 	UserID   int64          `json:"userId" binding:"required,gte=1"`
-	Currency utils.Currency `json:"currency" binding:"required,oneof=USD EURO PLN"`
+	Currency utils.Currency `json:"currency" binding:"required,currency"`
 }
 
 type listAccountsRequest struct {
