@@ -24,6 +24,8 @@ func New(conn *pgxpool.Pool) Api {
 	router := gin.Default()
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", utils.CurrencyValidator)
+		v.RegisterValidation("fullname", utils.FullNameValidator)
+		v.RegisterValidation("password", utils.PasswordValidator)
 	}
 	store := db.NewStore(conn)
 	v1.Register("/v1", router, store)

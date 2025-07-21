@@ -36,10 +36,11 @@ func TestDeleteUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, got, user)
 
-	err = testStore.DeleteUser(ctx, user.ID)
+	delUser, err := testStore.DeleteUser(ctx, user.ID)
 	require.NoError(t, err)
+	require.Equal(t, delUser, user)
 
-	delUser, err := testStore.GetUserById(ctx, user.ID)
+	delUser, err = testStore.GetUserById(ctx, user.ID)
 	require.Empty(t, delUser)
 	require.ErrorIs(t, err, pgx.ErrNoRows)
 }
@@ -58,7 +59,22 @@ func TestListUsers(t *testing.T) {
 	}
 	got, err = testStore.ListUsers(ctx, params)
 	require.NoError(t, err)
-	require.Equal(t, want, got)
+	require.Equal(t, got, want)
+}
+
+func TestGetTotalUsersCount(t *testing.T) {
+	defer cleanTestStore(t)
+
+	want := utils.RandIntInRange(5, 15)
+
+	for i := 0; i < want; i++ {
+		createRandomUser(t)
+	}
+
+	got, err := testStore.GetTotalUsersCount(ctx)
+
+	require.NoError(t, err)
+	require.Equal(t, got, int64(want))
 }
 
 func TestListUsers_QueryError(t *testing.T) {

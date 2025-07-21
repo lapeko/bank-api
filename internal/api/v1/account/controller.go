@@ -30,6 +30,7 @@ func createAccountHandler(ctx *gin.Context) {
 	}
 	account, err := service.createAccount(ctx, &req)
 	if err != nil {
+		// TODO handle duplicated key errors
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
 		return
 	}

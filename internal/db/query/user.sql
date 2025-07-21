@@ -19,6 +19,10 @@ FROM users
 LIMIT $2
 OFFSET $1;
 
+-- name: GetTotalUsersCount :one
+SELECT COUNT(*) as total_count
+FROM users;
+
 -- name: UpdateUserFullName :one
 UPDATE users
 SET full_name = $2
@@ -37,6 +41,7 @@ SET hashed_password = $2
 WHERE id = $1
 RETURNING *;
 
--- name: DeleteUser :exec
+-- name: DeleteUser :one
 DELETE FROM users
-WHERE id = $1;
+WHERE id = $1
+RETURNING *;

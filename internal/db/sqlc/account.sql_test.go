@@ -176,7 +176,7 @@ func TestListAccounts(t *testing.T) {
 	}
 	got, err = testStore.ListAccounts(ctx, params)
 	require.NoError(t, err)
-	require.Equal(t, want, got)
+	require.Equal(t, got, want)
 }
 
 func TestListAccounts_QueryError(t *testing.T) {

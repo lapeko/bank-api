@@ -1,9 +1,5 @@
 package utils
 
-import (
-	"github.com/go-playground/validator/v10"
-)
-
 type Currency string
 
 const (
@@ -19,11 +15,4 @@ func IsCurrency(currency Currency) bool {
 	default:
 		return false
 	}
-}
-
-func CurrencyValidator(fl validator.FieldLevel) bool {
-	if currency, ok := fl.Field().Interface().(Currency); ok {
-		return IsCurrency(currency)
-	}
-	return false
 }

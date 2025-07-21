@@ -1,0 +1,6 @@
+- implement users CRUD (BCrypt)
+- implement Store gomock
+- cover api handlers with tests
+- handle create account errors (email in use, user_id Currency is not unique)
+- integrate GHA ci
+- add JWT auth (add nexessary middlewares)
