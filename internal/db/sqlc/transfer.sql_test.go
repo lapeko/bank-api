@@ -3,7 +3,7 @@ package db
 import (
 	"testing"
 
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 	"github.com/stretchr/testify/require"
 )
 

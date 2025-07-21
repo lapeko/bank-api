@@ -6,7 +6,7 @@ package db
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 )
 
 type Account struct {

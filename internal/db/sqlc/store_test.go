@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -13,12 +13,21 @@ import (
 const zero = int64(0)
 
 func createTwoAccountsWithBalances(t *testing.T, balance1, balance2 int64, currency utils.Currency) (Account, Account) {
-	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: currency, Balance: balance1})
-	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: currency, Balance: balance2})
+	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: currency})
+	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: currency})
+
+	acc1, err := testStore.GetQueries().OffsetBalance(ctx, OffsetBalanceParams{ID: acc1.ID, Delta: balance1})
+	require.NoError(t, err)
+	acc2, err = testStore.GetQueries().OffsetBalance(ctx, OffsetBalanceParams{ID: acc2.ID, Delta: balance2})
+	require.NoError(t, err)
+
+	require.Equal(t, balance1, acc1.Balance)
+	require.Equal(t, balance2, acc2.Balance)
+
 	return acc1, acc2
 }
 
-func queryTwoAccountsById(t *testing.T, acc1Id, acc2Id int64) (Account, Account) {
+func queryTwoAccountsById(t *testing.T, acc1Id, acc2Id int64) (GetAccountByIdRow, GetAccountByIdRow) {
 	acc1, err := testStore.GetQueries().GetAccountById(ctx, acc1Id)
 	require.NoError(t, err)
 	acc2, err := testStore.GetQueries().GetAccountById(ctx, acc2Id)
@@ -35,9 +44,9 @@ func TestTransferMoney(t *testing.T) {
 	err := testStore.TransferMoney(ctx, acc2.ID, acc1.ID, transferAmmount)
 	require.NoError(t, err)
 
-	acc1, acc2 = queryTwoAccountsById(t, acc1.ID, acc2.ID)
-	require.Equal(t, acc1.Balance, transferAmmount)
-	require.Equal(t, acc2.Balance, zero)
+	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
+	require.Equal(t, extAcc1.Balance, transferAmmount)
+	require.Equal(t, extAcc2.Balance, zero)
 }
 
 func TestTransferMoney_Concurrently(t *testing.T) {
@@ -78,9 +87,9 @@ func TestTransferMoney_Concurrently(t *testing.T) {
 	}
 
 	delta := (transferRight - transferLeft) * int64(iterations)
-	acc1, acc2 = queryTwoAccountsById(t, acc1.ID, acc2.ID)
-	require.Equal(t, acc1.Balance, accBalance-delta)
-	require.Equal(t, acc2.Balance, acc2Balance+delta)
+	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
+	require.Equal(t, extAcc1.Balance, accBalance-delta)
+	require.Equal(t, extAcc2.Balance, acc2Balance+delta)
 }
 
 func TestTransferMoney_NotPositiveAmountError(t *testing.T) {
@@ -92,39 +101,38 @@ func TestTransferMoney_NotPositiveAmountError(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, err.Error(), "amount should be positive")
 
-	acc1, acc2 = queryTwoAccountsById(t, acc1.ID, acc2.ID)
-	require.Equal(t, acc1.Balance, zero)
-	require.Equal(t, acc2.Balance, zero)
+	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
+	require.Equal(t, extAcc1.Balance, zero)
+	require.Equal(t, extAcc2.Balance, zero)
 }
 
 func TestTransferMoney_SameAccountError(t *testing.T) {
 	defer cleanTestStore(t)
 
-	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.GenRandCurrency(), Balance: zero})
+	acc := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.GenRandCurrency()})
 
-	err := testStore.TransferMoney(ctx, acc1.ID, acc1.ID, 1)
+	err := testStore.TransferMoney(ctx, acc.ID, acc.ID, 1)
 	require.Error(t, err)
 	require.Equal(t, err.Error(), "transfer accounts should not be same")
 
-	acc1, err = testStore.GetQueries().GetAccountById(ctx, acc1.ID)
+	extAcc, err := testStore.GetQueries().GetAccountById(ctx, acc.ID)
 	require.NoError(t, err)
-	require.Equal(t, acc1.Balance, zero)
+	require.Equal(t, extAcc.Balance, zero)
 }
 
 func TestTransferMoney_DifferentCurrencyError(t *testing.T) {
 	defer cleanTestStore(t)
 
-	balance1, balance2 := utils.RandInt64InRange(1, 1e3), utils.RandInt64InRange(1, 1e3)
-	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Balance: balance1, Currency: utils.CurrencyEURO})
-	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Balance: balance2, Currency: utils.CurrencyUSD})
+	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.CurrencyEURO})
+	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.CurrencyUSD})
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, 1)
 	require.Error(t, err)
 	require.Equal(t, err.Error(), "currency must be same for money transfer")
 
-	acc1, acc2 = queryTwoAccountsById(t, acc1.ID, acc2.ID)
-	require.Equal(t, acc1.Balance, balance1)
-	require.Equal(t, acc2.Balance, balance2)
+	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
+	require.Equal(t, extAcc1.Balance, zero)
+	require.Equal(t, extAcc2.Balance, zero)
 }
 
 func TestTransferMoney_InsufficientFundsError(t *testing.T) {
@@ -136,9 +144,9 @@ func TestTransferMoney_InsufficientFundsError(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, err.Error(), "insufficient funds")
 
-	acc1, acc2 = queryTwoAccountsById(t, acc1.ID, acc2.ID)
-	require.Equal(t, acc1.Balance, zero)
-	require.Equal(t, acc2.Balance, zero)
+	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
+	require.Equal(t, extAcc1.Balance, zero)
+	require.Equal(t, extAcc2.Balance, zero)
 }
 
 func TestTransferMoney_GetAccountsByIdForUpdateError(t *testing.T) {

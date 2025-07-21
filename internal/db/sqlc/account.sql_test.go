@@ -2,11 +2,11 @@ package db
 
 import (
 	"errors"
-	"math/rand/v2"
+	"sync"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +15,6 @@ func createRandomAccount(t *testing.T, user User) Account {
 	want := CreateAccountParams{
 		UserID:   user.ID,
 		Currency: utils.GenRandCurrency(),
-		Balance:  rand.Int64N(1e6),
 	}
 
 	return createAccountWithParams(t, want)
@@ -30,7 +29,7 @@ func createAccountWithParams(t *testing.T, want CreateAccountParams) Account {
 	require.NotZero(t, got.ID)
 	require.Equal(t, got.UserID, want.UserID)
 	require.Equal(t, got.Currency, want.Currency)
-	require.Equal(t, got.Balance, want.Balance)
+	require.Equal(t, got.Balance, zero)
 	require.NotZero(t, got.CreatedAt)
 
 	return got
@@ -50,10 +49,11 @@ func TestDeleteAccount(t *testing.T) {
 	accById, err := q.GetAccountById(ctx, acc.ID)
 
 	require.NoError(t, err)
-	require.Equal(t, acc, accById)
+	require.NotEmpty(t, accById)
 
-	err = q.DeleteAccount(ctx, acc.ID)
+	acc, err = q.DeleteAccount(ctx, acc.ID)
 	require.NoError(t, err)
+	require.Equal(t, acc.ID, accById.ID)
 
 	accById, err = q.GetAccountById(ctx, acc.ID)
 	require.ErrorIs(t, err, pgx.ErrNoRows)
@@ -133,6 +133,26 @@ func TestGetAccountsByIdForUpdate_RowsError(t *testing.T) {
 	rowsMock.AssertCalled(t, "Close")
 }
 
+func TestGetTotalCount(t *testing.T) {
+	defer cleanTestStore(t)
+
+	want := utils.RandIntInRange(5, 15)
+	var wg sync.WaitGroup
+	wg.Add(want)
+
+	for i := 0; i < want; i++ {
+		go func() {
+			defer wg.Done()
+			createRandomAccount(t, createRandomUser(t))
+		}()
+	}
+
+	wg.Wait()
+	got, err := testStore.GetQueries().GetTotalAccountsCount(ctx)
+	require.NoError(t, err)
+	require.Equal(t, got, int64(want))
+}
+
 func TestListAccounts(t *testing.T) {
 	defer cleanTestStore(t)
 
@@ -142,9 +162,19 @@ func TestListAccounts(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, got)
 
-	var want []Account
+	var want []ListAccountsRow
 	for i := 0; i < 2; i++ {
-		want = append(want, createRandomAccount(t, createRandomUser(t)))
+		user := createRandomUser(t)
+		acc := createRandomAccount(t, user)
+		want = append(want, ListAccountsRow{
+			ID:        acc.ID,
+			UserID:    acc.UserID,
+			FullName:  user.FullName,
+			Email:     user.Email,
+			Currency:  acc.Currency,
+			Balance:   acc.Balance,
+			CreatedAt: acc.CreatedAt,
+		})
 	}
 	got, err = q.ListAccounts(ctx, params)
 	require.NoError(t, err)
@@ -171,7 +201,7 @@ func TestListAccounts_ScanError(t *testing.T) {
 	dbMock := new(dbConnMock)
 	rowsMock := new(rowsMock)
 	rowsMock.On("Next").Return(true)
-	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(wantError)
+	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(wantError)
 	rowsMock.On("Close").Return()
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(rowsMock, nil)
 
@@ -180,7 +210,7 @@ func TestListAccounts_ScanError(t *testing.T) {
 	require.ErrorIs(t, gotError, wantError)
 	dbMock.AssertCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	rowsMock.AssertCalled(t, "Next")
-	rowsMock.AssertCalled(t, "Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	rowsMock.AssertCalled(t, "Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	rowsMock.AssertCalled(t, "Close")
 }
 
@@ -192,7 +222,7 @@ func TestListAccounts_RowsError(t *testing.T) {
 	rowsMock := new(rowsMock)
 	rowsMock.On("Next").Once().Return(true)
 	rowsMock.On("Next").Once().Return(false)
-	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	rowsMock.On("Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	rowsMock.On("Err").Return(wantError)
 	rowsMock.On("Close").Return()
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(rowsMock, nil)
@@ -202,7 +232,7 @@ func TestListAccounts_RowsError(t *testing.T) {
 	require.ErrorIs(t, gotError, wantError)
 	dbMock.AssertCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	rowsMock.AssertCalled(t, "Next")
-	rowsMock.AssertCalled(t, "Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	rowsMock.AssertCalled(t, "Scan", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	rowsMock.AssertCalled(t, "Err")
 	rowsMock.AssertCalled(t, "Close")
 }
@@ -217,21 +247,6 @@ func TestOffsetBalance(t *testing.T) {
 	gotAcc, err := testStore.GetQueries().OffsetBalance(ctx, OffsetBalanceParams{
 		ID:    acc.ID,
 		Delta: int64(deltaBalance),
-	})
-
-	require.NoError(t, err)
-	require.Equal(t, wantBalance, gotAcc.Balance)
-}
-
-func TestUpdateAccountBalance(t *testing.T) {
-	defer cleanTestStore(t)
-
-	acc := createRandomAccount(t, createRandomUser(t))
-	wantBalance := int64(utils.RandIntInRange(-1e6, 1e6))
-
-	gotAcc, err := testStore.GetQueries().UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
-		ID:      acc.ID,
-		Balance: int64(wantBalance),
 	})
 
 	require.NoError(t, err)

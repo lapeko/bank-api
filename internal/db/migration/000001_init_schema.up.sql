@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     id bigserial PRIMARY KEY,
     user_id bigint NOT NULL,
     currency currency NOT NULL,
-    balance bigint NOT NULL,
+    balance bigint NOT NULL DEFAULT 0,
     created_at timestamptz NOT NULL DEFAULT now()
 );
 

@@ -8,23 +8,23 @@ package db
 import (
 	"context"
 
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/db/utils"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 )
 
 const createAccount = `-- name: CreateAccount :one
-INSERT INTO accounts (user_id, currency, balance)
-VALUES ($1, $2, $3)
+INSERT INTO accounts (user_id, currency)
+VALUES ($1, $2)
 RETURNING id, user_id, currency, balance, created_at
 `
 
 type CreateAccountParams struct {
 	UserID   int64          `json:"user_id"`
 	Currency utils.Currency `json:"currency"`
-	Balance  int64          `json:"balance"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
-	row := q.db.QueryRow(ctx, createAccount, arg.UserID, arg.Currency, arg.Balance)
+	row := q.db.QueryRow(ctx, createAccount, arg.UserID, arg.Currency)
 	var i Account
 	err := row.Scan(
 		&i.ID,
@@ -36,28 +36,51 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 	return i, err
 }
 
-const deleteAccount = `-- name: DeleteAccount :exec
+const deleteAccount = `-- name: DeleteAccount :one
 DELETE FROM accounts
 WHERE id = $1
+RETURNING id, user_id, currency, balance, created_at
 `
 
-func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
-	_, err := q.db.Exec(ctx, deleteAccount, id)
-	return err
-}
-
-const getAccountById = `-- name: GetAccountById :one
-SELECT id, user_id, currency, balance, created_at
-FROM accounts
-WHERE id = $1
-`
-
-func (q *Queries) GetAccountById(ctx context.Context, id int64) (Account, error) {
-	row := q.db.QueryRow(ctx, getAccountById, id)
+func (q *Queries) DeleteAccount(ctx context.Context, id int64) (Account, error) {
+	row := q.db.QueryRow(ctx, deleteAccount, id)
 	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.Currency,
+		&i.Balance,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getAccountById = `-- name: GetAccountById :one
+SELECT a.id, a.user_id, u.full_name, u.email, a.currency, a.balance, a.created_at
+FROM accounts as a
+JOIN users as u
+ON a.user_id = u.id
+WHERE a.id = $1
+`
+
+type GetAccountByIdRow struct {
+	ID        int64              `json:"id"`
+	UserID    int64              `json:"user_id"`
+	FullName  string             `json:"full_name"`
+	Email     string             `json:"email"`
+	Currency  utils.Currency     `json:"currency"`
+	Balance   int64              `json:"balance"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetAccountById(ctx context.Context, id int64) (GetAccountByIdRow, error) {
+	row := q.db.QueryRow(ctx, getAccountById, id)
+	var i GetAccountByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.FullName,
+		&i.Email,
 		&i.Currency,
 		&i.Balance,
 		&i.CreatedAt,
@@ -104,9 +127,22 @@ func (q *Queries) GetAccountsByIdForUpdate(ctx context.Context, arg GetAccountsB
 	return items, nil
 }
 
+const getTotalAccountsCount = `-- name: GetTotalAccountsCount :one
+SELECT COUNT(*) AS total_count FROM accounts
+`
+
+func (q *Queries) GetTotalAccountsCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalAccountsCount)
+	var total_count int64
+	err := row.Scan(&total_count)
+	return total_count, err
+}
+
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, user_id, currency, balance, created_at
-FROM accounts
+SELECT a.id, a.user_id, u.full_name, u.email, a.currency, a.balance, a.created_at
+FROM accounts as a
+JOIN users as u
+ON a.user_id = u.id
 LIMIT $1
 OFFSET $2
 `
@@ -116,18 +152,30 @@ type ListAccountsParams struct {
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error) {
+type ListAccountsRow struct {
+	ID        int64              `json:"id"`
+	UserID    int64              `json:"user_id"`
+	FullName  string             `json:"full_name"`
+	Email     string             `json:"email"`
+	Currency  utils.Currency     `json:"currency"`
+	Balance   int64              `json:"balance"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]ListAccountsRow, error) {
 	rows, err := q.db.Query(ctx, listAccounts, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Account
+	var items []ListAccountsRow
 	for rows.Next() {
-		var i Account
+		var i ListAccountsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
+			&i.FullName,
+			&i.Email,
 			&i.Currency,
 			&i.Balance,
 			&i.CreatedAt,
@@ -156,31 +204,6 @@ type OffsetBalanceParams struct {
 
 func (q *Queries) OffsetBalance(ctx context.Context, arg OffsetBalanceParams) (Account, error) {
 	row := q.db.QueryRow(ctx, offsetBalance, arg.ID, arg.Delta)
-	var i Account
-	err := row.Scan(
-		&i.ID,
-		&i.UserID,
-		&i.Currency,
-		&i.Balance,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const updateAccountBalance = `-- name: UpdateAccountBalance :one
-UPDATE accounts
-SET balance = $2
-WHERE id = $1
-RETURNING id, user_id, currency, balance, created_at
-`
-
-type UpdateAccountBalanceParams struct {
-	ID      int64 `json:"id"`
-	Balance int64 `json:"balance"`
-}
-
-func (q *Queries) UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) (Account, error) {
-	row := q.db.QueryRow(ctx, updateAccountBalance, arg.ID, arg.Balance)
 	var i Account
 	err := row.Scan(
 		&i.ID,
