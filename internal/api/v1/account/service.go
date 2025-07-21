@@ -13,7 +13,7 @@ type accountService struct {
 
 func (a *accountService) createAccount(ctx context.Context, params *createAccountRequest) (db.Account, error) {
 	reqParams := db.CreateAccountParams{UserID: params.UserID, Currency: params.Currency}
-	return a.store.GetQueries().CreateAccount(ctx, reqParams)
+	return a.store.CreateAccount(ctx, reqParams)
 }
 
 func (a *accountService) listAccounts(ctx context.Context, params listAccountsRequest) (listAccountsResponse, error) {
@@ -21,7 +21,6 @@ func (a *accountService) listAccounts(ctx context.Context, params listAccountsRe
 		Limit:  params.Size,
 		Offset: (params.Page - 1) * params.Size,
 	}
-	q := a.store.GetQueries()
 
 	var rows []db.ListAccountsRow
 	var totalCount int64
@@ -29,12 +28,12 @@ func (a *accountService) listAccounts(ctx context.Context, params listAccountsRe
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		var err error
-		rows, err = q.ListAccounts(ctx, reqParams)
+		rows, err = a.store.ListAccounts(ctx, reqParams)
 		return err
 	})
 	g.Go(func() error {
 		var err error
-		totalCount, err = q.GetTotalAccountsCount(ctx)
+		totalCount, err = a.store.GetTotalAccountsCount(ctx)
 		return err
 	})
 
@@ -49,7 +48,7 @@ func (a *accountService) listAccounts(ctx context.Context, params listAccountsRe
 }
 
 func (a *accountService) getAccountById(ctx context.Context, id int64) (*accountWithUserInfo, error) {
-	row, err := a.store.GetQueries().GetAccountById(ctx, id)
+	row, err := a.store.GetAccountById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +56,6 @@ func (a *accountService) getAccountById(ctx context.Context, id int64) (*account
 }
 
 func (a *accountService) deleteAccountById(ctx context.Context, id int64) error {
-	_, err := a.store.GetQueries().DeleteAccount(ctx, id)
+	_, err := a.store.DeleteAccount(ctx, id)
 	return err
 }

@@ -17,7 +17,7 @@ func createRandomUser(t *testing.T) User {
 		HashedPassword: utils.GenRandHashedPassword(),
 	}
 
-	got, err := testStore.GetQueries().CreateUser(ctx, want)
+	got, err := testStore.CreateUser(ctx, want)
 
 	require.NoError(t, err)
 	require.NotZero(t, got.ID)
@@ -29,25 +29,17 @@ func createRandomUser(t *testing.T) User {
 	return got
 }
 
-func cleanTestStore(t *testing.T) {
-	// CASCADE should clean all depended tables (all the tables)
-	const truncateUsers = "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
-	_, err := testStore.GetQueries().db.Exec(ctx, truncateUsers)
-	require.NoError(t, err)
-}
-
 func TestDeleteUser(t *testing.T) {
 	user := createRandomUser(t)
-	q := testStore.GetQueries()
 
-	got, err := q.GetUserByEmail(ctx, user.Email)
+	got, err := testStore.GetUserByEmail(ctx, user.Email)
 	require.NoError(t, err)
 	require.Equal(t, got, user)
 
-	err = q.DeleteUser(ctx, user.ID)
+	err = testStore.DeleteUser(ctx, user.ID)
 	require.NoError(t, err)
 
-	delUser, err := q.GetUserById(ctx, user.ID)
+	delUser, err := testStore.GetUserById(ctx, user.ID)
 	require.Empty(t, delUser)
 	require.ErrorIs(t, err, pgx.ErrNoRows)
 }
@@ -56,8 +48,7 @@ func TestListUsers(t *testing.T) {
 	defer cleanTestStore(t)
 
 	params := ListUsersParams{Offset: 0, Limit: 2}
-	q := testStore.GetQueries()
-	got, err := q.ListUsers(ctx, params)
+	got, err := testStore.ListUsers(ctx, params)
 	require.NoError(t, err)
 	require.Empty(t, got)
 
@@ -65,7 +56,7 @@ func TestListUsers(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		want = append(want, createRandomUser(t))
 	}
-	got, err = q.ListUsers(ctx, params)
+	got, err = testStore.ListUsers(ctx, params)
 	require.NoError(t, err)
 	require.Equal(t, want, got)
 }
@@ -137,7 +128,7 @@ func TestUpdateUserEmail(t *testing.T) {
 	}
 
 	require.NotEqual(t, user.Email, newEmail)
-	got, err := testStore.GetQueries().UpdateUserEmail(ctx, UpdateUserEmailParams{ID: user.ID, Email: newEmail})
+	got, err := testStore.UpdateUserEmail(ctx, UpdateUserEmailParams{ID: user.ID, Email: newEmail})
 
 	require.NoError(t, err)
 	require.Equal(t, got.Email, newEmail)
@@ -154,7 +145,7 @@ func TestUpdateUserName(t *testing.T) {
 	}
 
 	require.NotEqual(t, user.FullName, newName)
-	got, err := testStore.GetQueries().UpdateUserFullName(ctx, UpdateUserFullNameParams{ID: user.ID, FullName: newName})
+	got, err := testStore.UpdateUserFullName(ctx, UpdateUserFullNameParams{ID: user.ID, FullName: newName})
 
 	require.NoError(t, err)
 	require.Equal(t, got.FullName, newName)
@@ -171,7 +162,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	}
 
 	require.NotEqual(t, user.HashedPassword, newPassword)
-	got, err := testStore.GetQueries().UpdateUserPassword(ctx, UpdateUserPasswordParams{ID: user.ID, HashedPassword: newPassword})
+	got, err := testStore.UpdateUserPassword(ctx, UpdateUserPasswordParams{ID: user.ID, HashedPassword: newPassword})
 
 	require.NoError(t, err)
 	require.Equal(t, got.HashedPassword, newPassword)

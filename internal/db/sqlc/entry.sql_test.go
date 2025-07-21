@@ -10,7 +10,7 @@ import (
 func createRandomEntry(t *testing.T, acc Account) Entry {
 	randAmount := int64(utils.RandIntInRange(-1e6, 1e6))
 
-	got, err := testStore.GetQueries().CreateEntry(ctx, CreateEntryParams{
+	got, err := testStore.CreateEntry(ctx, CreateEntryParams{
 		AccountID: acc.ID,
 		Amount:    randAmount,
 	})

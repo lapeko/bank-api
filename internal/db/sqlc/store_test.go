@@ -16,9 +16,9 @@ func createTwoAccountsWithBalances(t *testing.T, balance1, balance2 int64, curre
 	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: currency})
 	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: currency})
 
-	acc1, err := testStore.GetQueries().OffsetBalance(ctx, OffsetBalanceParams{ID: acc1.ID, Delta: balance1})
+	acc1, err := testStore.OffsetBalance(ctx, OffsetBalanceParams{ID: acc1.ID, Delta: balance1})
 	require.NoError(t, err)
-	acc2, err = testStore.GetQueries().OffsetBalance(ctx, OffsetBalanceParams{ID: acc2.ID, Delta: balance2})
+	acc2, err = testStore.OffsetBalance(ctx, OffsetBalanceParams{ID: acc2.ID, Delta: balance2})
 	require.NoError(t, err)
 
 	require.Equal(t, balance1, acc1.Balance)
@@ -28,9 +28,9 @@ func createTwoAccountsWithBalances(t *testing.T, balance1, balance2 int64, curre
 }
 
 func queryTwoAccountsById(t *testing.T, acc1Id, acc2Id int64) (GetAccountByIdRow, GetAccountByIdRow) {
-	acc1, err := testStore.GetQueries().GetAccountById(ctx, acc1Id)
+	acc1, err := testStore.GetAccountById(ctx, acc1Id)
 	require.NoError(t, err)
-	acc2, err := testStore.GetQueries().GetAccountById(ctx, acc2Id)
+	acc2, err := testStore.GetAccountById(ctx, acc2Id)
 	require.NoError(t, err)
 	return acc1, acc2
 }
@@ -115,7 +115,7 @@ func TestTransferMoney_SameAccountError(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, err.Error(), "transfer accounts should not be same")
 
-	extAcc, err := testStore.GetQueries().GetAccountById(ctx, acc.ID)
+	extAcc, err := testStore.GetAccountById(ctx, acc.ID)
 	require.NoError(t, err)
 	require.Equal(t, extAcc.Balance, zero)
 }

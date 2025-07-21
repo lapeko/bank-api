@@ -21,7 +21,7 @@ func createRandomAccount(t *testing.T, user User) Account {
 }
 
 func createAccountWithParams(t *testing.T, want CreateAccountParams) Account {
-	got, err := testStore.GetQueries().CreateAccount(ctx, want)
+	got, err := testStore.CreateAccount(ctx, want)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, got)
@@ -44,18 +44,17 @@ func TestCreateAccount(t *testing.T) {
 func TestDeleteAccount(t *testing.T) {
 	defer cleanTestStore(t)
 
-	q := testStore.GetQueries()
 	acc := createRandomAccount(t, createRandomUser(t))
-	accById, err := q.GetAccountById(ctx, acc.ID)
+	accById, err := testStore.GetAccountById(ctx, acc.ID)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, accById)
 
-	acc, err = q.DeleteAccount(ctx, acc.ID)
+	acc, err = testStore.DeleteAccount(ctx, acc.ID)
 	require.NoError(t, err)
 	require.Equal(t, acc.ID, accById.ID)
 
-	accById, err = q.GetAccountById(ctx, acc.ID)
+	accById, err = testStore.GetAccountById(ctx, acc.ID)
 	require.ErrorIs(t, err, pgx.ErrNoRows)
 	require.Empty(t, accById)
 }
@@ -71,7 +70,7 @@ func TestGetAccountsByIdForUpdate(t *testing.T) {
 		accs = append(accs, createRandomAccount(t, usr))
 	}
 
-	gotAccs, err := testStore.GetQueries().GetAccountsByIdForUpdate(ctx, GetAccountsByIdForUpdateParams{userIds[0], userIds[1]})
+	gotAccs, err := testStore.GetAccountsByIdForUpdate(ctx, GetAccountsByIdForUpdateParams{userIds[0], userIds[1]})
 	require.NoError(t, err)
 	require.Equal(t, gotAccs[0], accs[0])
 	require.Equal(t, gotAccs[1], accs[1])
@@ -148,7 +147,7 @@ func TestGetTotalCount(t *testing.T) {
 	}
 
 	wg.Wait()
-	got, err := testStore.GetQueries().GetTotalAccountsCount(ctx)
+	got, err := testStore.GetTotalAccountsCount(ctx)
 	require.NoError(t, err)
 	require.Equal(t, got, int64(want))
 }
@@ -157,8 +156,7 @@ func TestListAccounts(t *testing.T) {
 	defer cleanTestStore(t)
 
 	params := ListAccountsParams{Offset: 0, Limit: 2}
-	q := testStore.GetQueries()
-	got, err := q.ListAccounts(ctx, params)
+	got, err := testStore.ListAccounts(ctx, params)
 	require.NoError(t, err)
 	require.Empty(t, got)
 
@@ -176,7 +174,7 @@ func TestListAccounts(t *testing.T) {
 			CreatedAt: acc.CreatedAt,
 		})
 	}
-	got, err = q.ListAccounts(ctx, params)
+	got, err = testStore.ListAccounts(ctx, params)
 	require.NoError(t, err)
 	require.Equal(t, want, got)
 }
@@ -244,7 +242,7 @@ func TestOffsetBalance(t *testing.T) {
 	deltaBalance := int64(utils.RandIntInRange(-1e6, 1e6))
 	wantBalance := acc.Balance + deltaBalance
 
-	gotAcc, err := testStore.GetQueries().OffsetBalance(ctx, OffsetBalanceParams{
+	gotAcc, err := testStore.OffsetBalance(ctx, OffsetBalanceParams{
 		ID:    acc.ID,
 		Delta: int64(deltaBalance),
 	})

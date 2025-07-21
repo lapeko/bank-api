@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -39,4 +40,11 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
+}
+
+func cleanTestStore(t *testing.T) {
+	// CASCADE should clean all depended tables (all the tables)
+	const truncateUsers = "TRUNCATE TABLE users RESTART IDENTITY CASCADE"
+	_, err := testStore.(*store).db.Exec(ctx, truncateUsers)
+	require.NoError(t, err)
 }

@@ -10,7 +10,7 @@ import (
 func createRandomTransfer(t *testing.T, acc1, acc2 Account) Transfer {
 	randAmount := int64(utils.RandIntInRange(-1e6, 1e6))
 
-	got, err := testStore.GetQueries().CreateTransfer(ctx, CreateTransferParams{
+	got, err := testStore.CreateTransfer(ctx, CreateTransferParams{
 		AccountFrom: acc1.ID,
 		AccountTo:   acc2.ID,
 		Amount:      randAmount,

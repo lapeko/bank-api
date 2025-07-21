@@ -13,14 +13,13 @@ type DBConn interface {
 }
 
 type Store interface {
-	execTX(context.Context, func(*Queries) error) error
-	GetQueries() *Queries
+	Querier
 	TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount int64) error
 }
 
 type store struct {
-	db      DBConn
-	Queries *Queries
+	db DBConn
+	*Queries
 }
 
 func NewStore(db DBConn) Store {
@@ -42,10 +41,6 @@ func (s *store) execTX(ctx context.Context, fn func(*Queries) error) error {
 	}
 
 	return tx.Commit(ctx)
-}
-
-func (s *store) GetQueries() *Queries {
-	return s.Queries
 }
 
 func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount int64) error {
