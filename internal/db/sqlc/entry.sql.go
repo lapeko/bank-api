@@ -31,3 +31,122 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 	)
 	return i, err
 }
+
+const getEntryById = `-- name: GetEntryById :one
+SELECT id, account_id, amount, created_at
+FROM entries
+WHERE id = $1
+`
+
+func (q *Queries) GetEntryById(ctx context.Context, id int64) (Entry, error) {
+	row := q.db.QueryRow(ctx, getEntryById, id)
+	var i Entry
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.Amount,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getTotalEntriesCount = `-- name: GetTotalEntriesCount :one
+SELECT COUNT(*) as total_count
+FROM entries
+`
+
+func (q *Queries) GetTotalEntriesCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalEntriesCount)
+	var total_count int64
+	err := row.Scan(&total_count)
+	return total_count, err
+}
+
+const getTotalEntriesCountByAccount = `-- name: GetTotalEntriesCountByAccount :one
+SELECT COUNT(*) as total_count
+FROM entries
+WHERE account_id = $1
+`
+
+func (q *Queries) GetTotalEntriesCountByAccount(ctx context.Context, accountID int64) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalEntriesCountByAccount, accountID)
+	var total_count int64
+	err := row.Scan(&total_count)
+	return total_count, err
+}
+
+const listEntries = `-- name: ListEntries :many
+SELECT id, account_id, amount, created_at
+FROM entries
+LIMIT $1
+OFFSET $2
+`
+
+type ListEntriesParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error) {
+	rows, err := q.db.Query(ctx, listEntries, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Entry
+	for rows.Next() {
+		var i Entry
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEntriesByAccount = `-- name: ListEntriesByAccount :many
+SELECT id, account_id, amount, created_at
+FROM entries
+WHERE account_id = $1
+LIMIT $2
+OFFSET $3
+`
+
+type ListEntriesByAccountParams struct {
+	AccountID int64 `json:"account_id"`
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+}
+
+func (q *Queries) ListEntriesByAccount(ctx context.Context, arg ListEntriesByAccountParams) ([]Entry, error) {
+	rows, err := q.db.Query(ctx, listEntriesByAccount, arg.AccountID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Entry
+	for rows.Next() {
+		var i Entry
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
