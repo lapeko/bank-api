@@ -99,7 +99,7 @@ func TestTransferMoney_NotPositiveAmountError(t *testing.T) {
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, zero)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "amount should be positive")
+	require.ErrorIs(t, err, NotPositiveAmountError)
 
 	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
 	require.Equal(t, extAcc1.Balance, zero)
@@ -113,7 +113,7 @@ func TestTransferMoney_SameAccountError(t *testing.T) {
 
 	err := testStore.TransferMoney(ctx, acc.ID, acc.ID, 1)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "transfer accounts should not be same")
+	require.ErrorIs(t, err, SameAccountError)
 
 	extAcc, err := testStore.GetAccountById(ctx, acc.ID)
 	require.NoError(t, err)
@@ -128,7 +128,7 @@ func TestTransferMoney_DifferentCurrencyError(t *testing.T) {
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, 1)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "currency must be same for money transfer")
+	require.ErrorIs(t, err, NotSameCurrencyError)
 
 	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
 	require.Equal(t, extAcc1.Balance, zero)
@@ -142,7 +142,7 @@ func TestTransferMoney_InsufficientFundsError(t *testing.T) {
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, 1)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "insufficient funds")
+	require.ErrorIs(t, err, InsufficientFundsError)
 
 	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
 	require.Equal(t, extAcc1.Balance, zero)

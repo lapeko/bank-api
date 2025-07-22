@@ -1,19 +1,6 @@
 package user
 
-import "github.com/jackc/pgx/v5/pgtype"
-
-type userResponse struct {
-	ID        int64              `json:"id"`
-	FullName  string             `json:"fullName"`
-	Email     string             `json:"email"`
-	CreatedAt pgtype.Timestamptz `json:"createdAt"`
-}
-
-type createUserRequest struct {
-	FullName string `json:"fullName" binding:"required,fullname"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,password"`
-}
+import "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/utils"
 
 type listUsersRequest struct {
 	Page int32 `form:"page" binding:"required,gte=1"`
@@ -21,8 +8,8 @@ type listUsersRequest struct {
 }
 
 type listUsersResponse struct {
-	Users      []userResponse `json:"users"`
-	TotalCount int64          `json:"totalCount"`
+	Users      []utils.UserResponse `json:"users"`
+	TotalCount int64                `json:"totalCount"`
 }
 
 type userUriIdRequest struct {

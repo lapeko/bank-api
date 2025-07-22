@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -20,6 +21,23 @@ type Store interface {
 type store struct {
 	db DBConn
 	*Queries
+}
+
+type transferClientErrorMessage string
+
+var (
+	NotPositiveAmountError transferClientErrorMessage = "amount should be positive"
+	SameAccountError       transferClientErrorMessage = "transfer accounts should not be same"
+	NotSameCurrencyError   transferClientErrorMessage = "currency must be same for money transfer"
+	InsufficientFundsError transferClientErrorMessage = "insufficient funds"
+)
+
+type TransferClientError struct {
+	message transferClientErrorMessage
+}
+
+func (e *TransferClientError) Error() string {
+	return fmt.Sprintf("transfer error: %s", e.message)
 }
 
 func NewStore(db DBConn) Store {
@@ -45,10 +63,10 @@ func (s *store) execTX(ctx context.Context, fn func(*Queries) error) error {
 
 func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount int64) error {
 	if amount <= 0 {
-		return errors.New("amount should be positive")
+		return &TransferClientError{NotPositiveAmountError}
 	}
 	if accIdFrom == accIdTo {
-		return errors.New("transfer accounts should not be same")
+		return &TransferClientError{SameAccountError}
 	}
 
 	return s.execTX(ctx, func(q *Queries) error {
@@ -61,10 +79,10 @@ func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount in
 			accFrom, accTo = accTo, accFrom
 		}
 		if accFrom.Currency != accTo.Currency {
-			return errors.New("currency must be same for money transfer")
+			return &TransferClientError{NotSameCurrencyError}
 		}
 		if accFrom.Balance < amount {
-			return errors.New("insufficient funds")
+			return &TransferClientError{InsufficientFundsError}
 		}
 		if _, err := q.CreateEntry(ctx, CreateEntryParams{accIdFrom, -amount}); err != nil {
 			return err

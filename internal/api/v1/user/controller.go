@@ -17,34 +17,12 @@ func Register(path string, router *gin.RouterGroup, store db.Store) {
 	service = &userService{store: store}
 	g := router.Group(path)
 
-	g.POST("/", createUserHandler)
 	g.GET("/", listUsersHandler)
 	g.GET("/:id", getUserByIdHandler)
 	g.PATCH("/:id/email", updateUserEmailHandler)
 	g.PATCH("/:id/fullname", updateUserFullNameHandler)
 	g.PATCH("/:id/password", updateUserPasswordHandler)
 	g.DELETE("/:id", deleteUserHandler)
-}
-
-func createUserHandler(ctx *gin.Context) {
-	var usr createUserRequest
-	if err := ctx.ShouldBind(&usr); err != nil {
-		utils.SendError(ctx, err)
-		return
-	}
-	hash, err := rootUtils.HashPassword(usr.Password)
-	if err != nil {
-		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
-		return
-	}
-	params := db.CreateUserParams{FullName: usr.FullName, Email: usr.Email, HashedPassword: hash}
-	usrRes, err := service.createUser(ctx, params)
-	if err != nil {
-		// TODO handle email taken
-		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
-		return
-	}
-	utils.SendSuccessWithStatusCode(ctx, usrRes, http.StatusCreated)
 }
 
 func listUsersHandler(ctx *gin.Context) {

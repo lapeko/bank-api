@@ -3,18 +3,13 @@ package user
 import (
 	"context"
 
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/utils"
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
 	"golang.org/x/sync/errgroup"
 )
 
 type userService struct {
 	store db.Store
-}
-
-func (s *userService) createUser(ctx context.Context, args db.CreateUserParams) (user userResponse, err error) {
-	dbUser, err := s.store.CreateUser(ctx, args)
-	user = dbUserToUserResponse(dbUser)
-	return
 }
 
 func (s *userService) listUsers(ctx context.Context, args listUsersRequest) (res listUsersResponse, err error) {
@@ -45,25 +40,25 @@ func (s *userService) listUsers(ctx context.Context, args listUsersRequest) (res
 	}, nil
 }
 
-func (s *userService) getUserById(ctx context.Context, id int64) (user userResponse, err error) {
+func (s *userService) getUserById(ctx context.Context, id int64) (user utils.UserResponse, err error) {
 	dbUser, err := s.store.GetUserById(ctx, id)
-	user = dbUserToUserResponse(dbUser)
+	user = utils.DbUserToUserResponse(dbUser)
 	return
 }
 
-func (s *userService) updateUserEmail(ctx context.Context, id int64, newEmail string) (userResponse, error) {
+func (s *userService) updateUserEmail(ctx context.Context, id int64, newEmail string) (utils.UserResponse, error) {
 	dbUser, err := s.store.UpdateUserEmail(ctx, db.UpdateUserEmailParams{ID: id, Email: newEmail})
-	return dbUserToUserResponse(dbUser), err
+	return utils.DbUserToUserResponse(dbUser), err
 }
 
-func (s *userService) updateUserFullName(ctx context.Context, id int64, newFullName string) (userResponse, error) {
+func (s *userService) updateUserFullName(ctx context.Context, id int64, newFullName string) (utils.UserResponse, error) {
 	dbUser, err := s.store.UpdateUserFullName(ctx, db.UpdateUserFullNameParams{ID: id, FullName: newFullName})
-	return dbUserToUserResponse(dbUser), err
+	return utils.DbUserToUserResponse(dbUser), err
 }
 
-func (s *userService) updateUserPassword(ctx context.Context, id int64, hashedPassword string) (userResponse, error) {
+func (s *userService) updateUserPassword(ctx context.Context, id int64, hashedPassword string) (utils.UserResponse, error) {
 	dbUser, err := s.store.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{ID: id, HashedPassword: hashedPassword})
-	return dbUserToUserResponse(dbUser), err
+	return utils.DbUserToUserResponse(dbUser), err
 }
 
 func (s *userService) deleteUser(ctx context.Context, id int64) (err error) {
