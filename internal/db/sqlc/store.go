@@ -26,10 +26,10 @@ type store struct {
 type transferClientErrorMessage string
 
 var (
-	NotPositiveAmountError transferClientErrorMessage = "amount should be positive"
-	SameAccountError       transferClientErrorMessage = "transfer accounts should not be same"
-	NotSameCurrencyError   transferClientErrorMessage = "currency must be same for money transfer"
-	InsufficientFundsError transferClientErrorMessage = "insufficient funds"
+	NotPositiveAmount transferClientErrorMessage = "amount should be positive"
+	SameAccount       transferClientErrorMessage = "transfer accounts should not be same"
+	NotSameCurrency   transferClientErrorMessage = "currency must be same for money transfer"
+	InsufficientFunds transferClientErrorMessage = "insufficient funds"
 )
 
 type TransferClientError struct {
@@ -63,10 +63,10 @@ func (s *store) execTX(ctx context.Context, fn func(*Queries) error) error {
 
 func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount int64) error {
 	if amount <= 0 {
-		return &TransferClientError{NotPositiveAmountError}
+		return &TransferClientError{NotPositiveAmount}
 	}
 	if accIdFrom == accIdTo {
-		return &TransferClientError{SameAccountError}
+		return &TransferClientError{SameAccount}
 	}
 
 	return s.execTX(ctx, func(q *Queries) error {
@@ -79,10 +79,10 @@ func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount in
 			accFrom, accTo = accTo, accFrom
 		}
 		if accFrom.Currency != accTo.Currency {
-			return &TransferClientError{NotSameCurrencyError}
+			return &TransferClientError{NotSameCurrency}
 		}
 		if accFrom.Balance < amount {
-			return &TransferClientError{InsufficientFundsError}
+			return &TransferClientError{InsufficientFunds}
 		}
 		if _, err := q.CreateEntry(ctx, CreateEntryParams{accIdFrom, -amount}); err != nil {
 			return err

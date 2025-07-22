@@ -98,8 +98,9 @@ func TestTransferMoney_NotPositiveAmountError(t *testing.T) {
 	acc1, acc2 := createTwoAccountsWithBalances(t, zero, zero, utils.GenRandCurrency())
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, zero)
-	require.Error(t, err)
-	require.ErrorIs(t, err, NotPositiveAmountError)
+	var target *TransferClientError
+	require.ErrorAs(t, err, &target)
+	require.Equal(t, target.message, NotPositiveAmount)
 
 	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
 	require.Equal(t, extAcc1.Balance, zero)
@@ -112,8 +113,9 @@ func TestTransferMoney_SameAccountError(t *testing.T) {
 	acc := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.GenRandCurrency()})
 
 	err := testStore.TransferMoney(ctx, acc.ID, acc.ID, 1)
-	require.Error(t, err)
-	require.ErrorIs(t, err, SameAccountError)
+	var target *TransferClientError
+	require.ErrorAs(t, err, &target)
+	require.Equal(t, target.message, SameAccount)
 
 	extAcc, err := testStore.GetAccountById(ctx, acc.ID)
 	require.NoError(t, err)
@@ -127,8 +129,9 @@ func TestTransferMoney_DifferentCurrencyError(t *testing.T) {
 	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.CurrencyUSD})
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, 1)
-	require.Error(t, err)
-	require.ErrorIs(t, err, NotSameCurrencyError)
+	var target *TransferClientError
+	require.ErrorAs(t, err, &target)
+	require.Equal(t, target.message, NotSameCurrency)
 
 	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
 	require.Equal(t, extAcc1.Balance, zero)
@@ -141,8 +144,9 @@ func TestTransferMoney_InsufficientFundsError(t *testing.T) {
 	acc1, acc2 := createTwoAccountsWithBalances(t, zero, zero, utils.GenRandCurrency())
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, 1)
-	require.Error(t, err)
-	require.ErrorIs(t, err, InsufficientFundsError)
+	var target *TransferClientError
+	require.ErrorAs(t, err, &target)
+	require.Equal(t, target.message, InsufficientFunds)
 
 	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
 	require.Equal(t, extAcc1.Balance, zero)
