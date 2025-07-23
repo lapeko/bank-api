@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/health"
 	v1 "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1"
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
@@ -29,6 +30,7 @@ func New(conn *pgxpool.Pool) Api {
 	}
 	store := db.NewStore(conn)
 	v1.Register("/v1", router, store)
+	health.Register("/health", router)
 	return &api{router: router}
 }
 

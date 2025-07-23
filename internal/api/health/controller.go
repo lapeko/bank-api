@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(path string, router *gin.RouterGroup) {
+func Register(path string, router *gin.Engine) {
 	g := router.Group(path)
 	g.GET("/", healthHandler)
 }

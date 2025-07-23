@@ -30,15 +30,13 @@ func (s *entryService) listEntries(ctx context.Context, args listEntriesRequest)
 		return
 	}
 
-	return listEntriesResponse{
-		Entries:    dbEntriesToEntryResponses(entryRows),
-		TotalCount: totalCount,
-	}, nil
+	res.Entries = entryRows
+	res.TotalCount = totalCount
+	return
 }
 
-func (s *entryService) getEntryById(ctx context.Context, id int64) (entryResponse, error) {
-	dbRow, err := s.store.GetEntryById(ctx, id)
-	return dbEntryToEntryResponse(dbRow), err
+func (s *entryService) getEntryById(ctx context.Context, id int64) (db.Entry, error) {
+	return s.store.GetEntryById(ctx, id)
 }
 
 func (s *entryService) listEntriesByAccount(ctx context.Context, args listEntriesRequest, accountId int64) (res listEntriesResponse, err error) {
@@ -60,8 +58,7 @@ func (s *entryService) listEntriesByAccount(ctx context.Context, args listEntrie
 		return
 	}
 
-	return listEntriesResponse{
-		Entries:    dbEntriesToEntryResponses(entryRows),
-		TotalCount: totalCount,
-	}, nil
+	res.Entries = entryRows
+	res.TotalCount = totalCount
+	return
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/account"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/auth"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/entry"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/health"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/transfer"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/user"
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
@@ -17,7 +16,6 @@ func Register(path string, router *gin.Engine, store db.Store) {
 	account.Register("/accounts", g, store)
 	auth.Register("/auth", g, store)
 	entry.Register("/entries", g, store)
-	health.Register("/health", g)
 	transfer.Register("/transfers", g, store)
 	user.Register("/users", g, store)
 }

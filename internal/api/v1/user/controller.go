@@ -40,12 +40,12 @@ func listUsersHandler(ctx *gin.Context) {
 }
 
 func getUserByIdHandler(ctx *gin.Context) {
-	var param userUriIdRequest
-	if err := ctx.ShouldBindUri(&param); err != nil {
+	var uriId utils.UriId
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
-	user, err := service.getUserById(ctx, param.ID)
+	user, err := service.getUserById(ctx, uriId.ID)
 	if err != nil {
 		// TODO recheck
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -59,10 +59,10 @@ func getUserByIdHandler(ctx *gin.Context) {
 }
 
 func updateUserEmailHandler(ctx *gin.Context) {
-	var uriPath userUriIdRequest
+	var uriId utils.UriId
 	var body updateUserEmailRequest
 
-	if err := ctx.ShouldBindUri(&uriPath); err != nil {
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
@@ -71,7 +71,7 @@ func updateUserEmailHandler(ctx *gin.Context) {
 		return
 	}
 
-	user, err := service.updateUserEmail(ctx, uriPath.ID, body.NewEmail)
+	user, err := service.updateUserEmail(ctx, uriId.ID, body.NewEmail)
 
 	if err != nil {
 		// TODO handle not unique email
@@ -83,10 +83,10 @@ func updateUserEmailHandler(ctx *gin.Context) {
 }
 
 func updateUserFullNameHandler(ctx *gin.Context) {
-	var uriPath userUriIdRequest
+	var uriId utils.UriId
 	var body updateUserFullNameRequest
 
-	if err := ctx.ShouldBindUri(&uriPath); err != nil {
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
@@ -95,7 +95,7 @@ func updateUserFullNameHandler(ctx *gin.Context) {
 		return
 	}
 
-	user, err := service.updateUserFullName(ctx, uriPath.ID, body.NewFullName)
+	user, err := service.updateUserFullName(ctx, uriId.ID, body.NewFullName)
 
 	if err != nil {
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
@@ -106,10 +106,10 @@ func updateUserFullNameHandler(ctx *gin.Context) {
 }
 
 func updateUserPasswordHandler(ctx *gin.Context) {
-	var uriPath userUriIdRequest
+	var uriId utils.UriId
 	var body updateUserPasswordRequest
 
-	if err := ctx.ShouldBindUri(&uriPath); err != nil {
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
@@ -123,7 +123,7 @@ func updateUserPasswordHandler(ctx *gin.Context) {
 		return
 	}
 
-	user, err := service.updateUserPassword(ctx, uriPath.ID, hash)
+	user, err := service.updateUserPassword(ctx, uriId.ID, hash)
 
 	if err != nil {
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
@@ -134,14 +134,14 @@ func updateUserPasswordHandler(ctx *gin.Context) {
 }
 
 func deleteUserHandler(ctx *gin.Context) {
-	var uriPath userUriIdRequest
+	var uriId utils.UriId
 
-	if err := ctx.ShouldBindUri(&uriPath); err != nil {
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
 
-	err := service.deleteUser(ctx, uriPath.ID)
+	err := service.deleteUser(ctx, uriId.ID)
 
 	if err != nil {
 		// TODO recheck
@@ -153,5 +153,5 @@ func deleteUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	utils.SendSuccess(ctx, uriPath)
+	utils.SendSuccess(ctx, uriId)
 }

@@ -56,12 +56,12 @@ func listAccountsHandler(ctx *gin.Context) {
 }
 
 func getAccountByIdHandler(ctx *gin.Context) {
-	var req getAccountByIdRequest
-	if err := ctx.ShouldBindUri(&req); err != nil {
+	var uriId utils.UriId
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
-	acc, err := service.getAccountById(ctx, req.ID)
+	acc, err := service.getAccountById(ctx, uriId.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			utils.SendErrorWithStatusCode(ctx, err, http.StatusNotFound)
@@ -74,12 +74,12 @@ func getAccountByIdHandler(ctx *gin.Context) {
 }
 
 func deleteAccountHandler(ctx *gin.Context) {
-	var req deleteAccountByIdRequest
-	if err := ctx.ShouldBindUri(&req); err != nil {
+	var uriId utils.UriId
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
-	if err := service.deleteAccountById(ctx, req.ID); err != nil {
+	if err := service.deleteAccountById(ctx, uriId.ID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			utils.SendErrorWithStatusCode(ctx, err, http.StatusNotFound)
 			return
@@ -87,5 +87,5 @@ func deleteAccountHandler(ctx *gin.Context) {
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
 		return
 	}
-	utils.SendSuccess(ctx, req)
+	utils.SendSuccess(ctx, uriId)
 }

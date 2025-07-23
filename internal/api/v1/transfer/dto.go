@@ -1,39 +1,18 @@
 package transfer
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
+	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
 )
 
-type uriIdRequest struct {
-	ID int64 `uri:"id" binding:"required,gte=1"`
-}
-
-type transferResponse struct {
-	ID          int64              `json:"id"`
-	AccountFrom int64              `json:"accountFrom"`
-	AccountTo   int64              `json:"accounTo"`
-	Amount      int64              `json:"amount"`
-	CreatedAt   pgtype.Timestamptz `json:"createdAt"`
-}
-
 type transferRequest struct {
-	AccountFrom int64 `json:"accountFrom" binding:"required,gte=1"`
-	AccountTo   int64 `json:"accountTo" binding:"required,gte=1"`
+	AccountFrom int64 `json:"account_from" binding:"required,gte=1"`
+	AccountTo   int64 `json:"account_to" binding:"required,gte=1"`
 	Amount      int64 `json:"amount" binding:"required,gte=1"`
 }
 
 type externalTransferRequest struct {
-	Account int64 `json:"accountFrom" binding:"required,gte=1"`
+	Account int64 `json:"account_from" binding:"required,gte=1"`
 	Amount  int64 `json:"amount" binding:"required"`
-}
-
-type accountResponse struct {
-	ID        int64              `json:"id"`
-	UserID    int64              `json:"userId"`
-	Currency  utils.Currency     `json:"currency"`
-	Balance   int64              `json:"balance"`
-	CreatedAt pgtype.Timestamptz `json:"createdAt"`
 }
 
 type listTransfersRequest struct {
@@ -42,6 +21,6 @@ type listTransfersRequest struct {
 }
 
 type listTransfersResponse struct {
-	Transfers  []transferResponse `json:"transfers"`
-	TotalCount int64              `json:"totalCount"`
+	Transfers  []db.Transfer `json:"transfers"`
+	TotalCount int64         `json:"total_count"`
 }

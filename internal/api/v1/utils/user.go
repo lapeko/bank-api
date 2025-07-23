@@ -5,18 +5,18 @@ import (
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
 )
 
-type UserResponse struct {
+type UserWithoutPassword struct {
 	ID        int64              `json:"id"`
-	FullName  string             `json:"fullName"`
+	FullName  string             `json:"full_name"`
 	Email     string             `json:"email"`
-	CreatedAt pgtype.Timestamptz `json:"createdAt"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
-func DbUserToUserResponse(src db.User) UserResponse {
-	return UserResponse{
-		ID:        src.ID,
-		FullName:  src.FullName,
-		Email:     src.Email,
-		CreatedAt: src.CreatedAt,
+func CutUserPassword(u db.User) UserWithoutPassword {
+	return UserWithoutPassword{
+		ID:        u.ID,
+		FullName:  u.FullName,
+		Email:     u.Email,
+		CreatedAt: u.CreatedAt,
 	}
 }

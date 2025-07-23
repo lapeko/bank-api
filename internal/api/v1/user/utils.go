@@ -5,10 +5,10 @@ import (
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
 )
 
-func dbUsersToUserResponses(src []db.User) []utils.UserResponse {
-	users := make([]utils.UserResponse, len(src))
+func dbUsersToUserResponses(src []db.User) []utils.UserWithoutPassword {
+	users := make([]utils.UserWithoutPassword, len(src))
 	for idx, dbUser := range src {
-		users[idx] = utils.DbUserToUserResponse(dbUser)
+		users[idx] = utils.CutUserPassword(dbUser)
 	}
 	return users
 }

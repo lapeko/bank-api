@@ -36,12 +36,12 @@ func listEntriesHandler(ctx *gin.Context) {
 }
 
 func getEntryByIdHandler(ctx *gin.Context) {
-	var req uriIdRequest
-	if err := ctx.ShouldBindUri(&req); err != nil {
+	var uriId utils.UriId
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
-	entry, err := service.getEntryById(ctx, req.ID)
+	entry, err := service.getEntryById(ctx, uriId.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			utils.SendErrorWithStatusCode(ctx, err, http.StatusNotFound)
@@ -54,9 +54,9 @@ func getEntryByIdHandler(ctx *gin.Context) {
 }
 
 func listEntriesByAccountHandler(ctx *gin.Context) {
-	var pathParam uriIdRequest
+	var uriId utils.UriId
 	var queryParams listEntriesRequest
-	if err := ctx.ShouldBindUri(&pathParam); err != nil {
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
@@ -64,7 +64,7 @@ func listEntriesByAccountHandler(ctx *gin.Context) {
 		utils.SendError(ctx, err)
 		return
 	}
-	list, err := service.listEntriesByAccount(ctx, queryParams, pathParam.ID)
+	list, err := service.listEntriesByAccount(ctx, queryParams, uriId.ID)
 	if err != nil {
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
 		return

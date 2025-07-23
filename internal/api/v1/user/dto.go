@@ -8,20 +8,16 @@ type listUsersRequest struct {
 }
 
 type listUsersResponse struct {
-	Users      []utils.UserResponse `json:"users"`
-	TotalCount int64                `json:"totalCount"`
-}
-
-type userUriIdRequest struct {
-	ID int64 `uri:"id" binding:"required,gte=1"`
+	Users      []utils.UserWithoutPassword `json:"users"`
+	TotalCount int64                       `json:"total_count"`
 }
 
 type updateUserEmailRequest struct {
-	NewEmail string `json:"newEmail" binding:"required,email"`
+	NewEmail string `json:"new_email" binding:"required,email"`
 }
 
 type updateUserFullNameRequest struct {
-	NewFullName string `json:"newFullName" binding:"required,fullname"`
+	NewFullName string `json:"full_name" binding:"required,fullname"`
 }
 
 type updateUserPasswordRequest struct {

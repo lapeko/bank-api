@@ -42,17 +42,13 @@ func (a *accountService) listAccounts(ctx context.Context, params listAccountsRe
 	}
 
 	return listAccountsResponse{
-		Accounts:   listAccountRowsToAccountWithUserInfo(rows),
+		Accounts:   rows,
 		TotalCount: totalCount,
 	}, nil
 }
 
-func (a *accountService) getAccountById(ctx context.Context, id int64) (*accountWithUserInfo, error) {
-	row, err := a.store.GetAccountById(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return getAccountByIdRowToAccountWithUserInfo(row), nil
+func (a *accountService) getAccountById(ctx context.Context, id int64) (db.GetAccountByIdRow, error) {
+	return a.store.GetAccountById(ctx, id)
 }
 
 func (a *accountService) deleteAccountById(ctx context.Context, id int64) error {

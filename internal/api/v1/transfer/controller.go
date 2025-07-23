@@ -14,6 +14,7 @@ var service transferService
 func Register(path string, router *gin.RouterGroup, store db.Store) {
 	service = transferService{store: store}
 	g := router.Group(path)
+
 	g.POST("/", transferHandler)
 	g.POST("/in", transferInHandler)
 	g.POST("/out", transferOutHandler)
@@ -95,7 +96,7 @@ func listTransfersHandler(ctx *gin.Context) {
 }
 
 func listTransfersByAccountHandler(ctx *gin.Context) {
-	var uriParams uriIdRequest
+	var uriId utils.UriId
 	var paginationParams listTransfersRequest
 
 	if err := ctx.ShouldBind(&paginationParams); err != nil {
@@ -103,12 +104,12 @@ func listTransfersByAccountHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := ctx.ShouldBindUri(&uriParams); err != nil {
+	if err := ctx.ShouldBindUri(&uriId); err != nil {
 		utils.SendError(ctx, err)
 		return
 	}
 
-	response, err := service.listTransfersByAccount(ctx, paginationParams, uriParams.ID)
+	response, err := service.listTransfersByAccount(ctx, paginationParams, uriId.ID)
 
 	if err != nil {
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)

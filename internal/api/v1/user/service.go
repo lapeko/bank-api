@@ -40,25 +40,25 @@ func (s *userService) listUsers(ctx context.Context, args listUsersRequest) (res
 	}, nil
 }
 
-func (s *userService) getUserById(ctx context.Context, id int64) (user utils.UserResponse, err error) {
+func (s *userService) getUserById(ctx context.Context, id int64) (user utils.UserWithoutPassword, err error) {
 	dbUser, err := s.store.GetUserById(ctx, id)
-	user = utils.DbUserToUserResponse(dbUser)
+	user = utils.CutUserPassword(dbUser)
 	return
 }
 
-func (s *userService) updateUserEmail(ctx context.Context, id int64, newEmail string) (utils.UserResponse, error) {
+func (s *userService) updateUserEmail(ctx context.Context, id int64, newEmail string) (utils.UserWithoutPassword, error) {
 	dbUser, err := s.store.UpdateUserEmail(ctx, db.UpdateUserEmailParams{ID: id, Email: newEmail})
-	return utils.DbUserToUserResponse(dbUser), err
+	return utils.CutUserPassword(dbUser), err
 }
 
-func (s *userService) updateUserFullName(ctx context.Context, id int64, newFullName string) (utils.UserResponse, error) {
+func (s *userService) updateUserFullName(ctx context.Context, id int64, newFullName string) (utils.UserWithoutPassword, error) {
 	dbUser, err := s.store.UpdateUserFullName(ctx, db.UpdateUserFullNameParams{ID: id, FullName: newFullName})
-	return utils.DbUserToUserResponse(dbUser), err
+	return utils.CutUserPassword(dbUser), err
 }
 
-func (s *userService) updateUserPassword(ctx context.Context, id int64, hashedPassword string) (utils.UserResponse, error) {
+func (s *userService) updateUserPassword(ctx context.Context, id int64, hashedPassword string) (utils.UserWithoutPassword, error) {
 	dbUser, err := s.store.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{ID: id, HashedPassword: hashedPassword})
-	return utils.DbUserToUserResponse(dbUser), err
+	return utils.CutUserPassword(dbUser), err
 }
 
 func (s *userService) deleteUser(ctx context.Context, id int64) (err error) {

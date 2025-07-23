@@ -10,4 +10,7 @@ sqlc:
 	sqlc generate
 
 start:
-	export POSTGRES_URL=postgres://postgres:1234@localhost:5432/bank && go run ./cmd/api/...
+	export \
+		POSTGRES_URL=postgres://postgres:1234@localhost:5432/bank \
+		JWT_SECRET_KEY=my_secret \
+		&& go run ./cmd/api/...

@@ -20,9 +20,8 @@ func (s *transferService) transferIn(ctx context.Context, args externalTransferR
 	return err
 }
 
-func (s *transferService) transferOut(ctx context.Context, args externalTransferRequest) (accountResponse, error) {
-	acc, err := s.store.TransferExternalMoney(ctx, args.Account, args.Amount)
-	return dbAccoutToAccountResponse(acc), err
+func (s *transferService) transferOut(ctx context.Context, args externalTransferRequest) (db.Account, error) {
+	return s.store.TransferExternalMoney(ctx, args.Account, args.Amount)
 }
 
 func (s *transferService) listTransfers(ctx context.Context, args listTransfersRequest) (res listTransfersResponse, err error) {
@@ -44,7 +43,7 @@ func (s *transferService) listTransfers(ctx context.Context, args listTransfersR
 		return
 	}
 
-	res.Transfers = dbTransfersToTransferResponses(transfers)
+	res.Transfers = transfers
 	res.TotalCount = totalCount
 	return res, nil
 }
@@ -68,7 +67,7 @@ func (s *transferService) listTransfersByAccount(ctx context.Context, args listT
 		return
 	}
 
-	res.Transfers = dbTransfersToTransferResponses(transfers)
+	res.Transfers = transfers
 	res.TotalCount = totalCount
 	return res, nil
 }
