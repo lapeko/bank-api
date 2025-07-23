@@ -59,7 +59,7 @@ func TestDeleteAccount(t *testing.T) {
 	require.Empty(t, accById)
 }
 
-func TestGetAccountsByIdForUpdate(t *testing.T) {
+func TestGetTwoAccountsByIdForUpdate(t *testing.T) {
 	defer cleanTestStore(t)
 
 	var accs []Account
@@ -70,27 +70,27 @@ func TestGetAccountsByIdForUpdate(t *testing.T) {
 		accs = append(accs, createRandomAccount(t, usr))
 	}
 
-	gotAccs, err := testStore.GetAccountsByIdForUpdate(ctx, GetAccountsByIdForUpdateParams{userIds[0], userIds[1]})
+	gotAccs, err := testStore.GetTwoAccountsByIdForUpdate(ctx, GetTwoAccountsByIdForUpdateParams{userIds[0], userIds[1]})
 	require.NoError(t, err)
 	require.Equal(t, gotAccs[0], accs[0])
 	require.Equal(t, gotAccs[1], accs[1])
 }
 
-func TestGetAccountsByIdForUpdate_QueryError(t *testing.T) {
-	params := GetAccountsByIdForUpdateParams{}
+func TestGetTwoAccountsByIdForUpdate_QueryError(t *testing.T) {
+	params := GetTwoAccountsByIdForUpdateParams{}
 	wantError := errors.New(utils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, wantError)
 
-	gotAccounts, gotError := New(dbMock).GetAccountsByIdForUpdate(ctx, params)
+	gotAccounts, gotError := New(dbMock).GetTwoAccountsByIdForUpdate(ctx, params)
 	require.Nil(t, gotAccounts)
 	require.ErrorIs(t, gotError, wantError)
 	dbMock.AssertCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func TestGetAccountsByIdForUpdate_ScanError(t *testing.T) {
-	params := GetAccountsByIdForUpdateParams{}
+func TestGetTwoAccountsByIdForUpdate_ScanError(t *testing.T) {
+	params := GetTwoAccountsByIdForUpdateParams{}
 	wantError := errors.New(utils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
@@ -100,7 +100,7 @@ func TestGetAccountsByIdForUpdate_ScanError(t *testing.T) {
 	rowsMock.On("Close").Return()
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(rowsMock, nil)
 
-	gotAccounts, gotError := New(dbMock).GetAccountsByIdForUpdate(ctx, params)
+	gotAccounts, gotError := New(dbMock).GetTwoAccountsByIdForUpdate(ctx, params)
 	require.Nil(t, gotAccounts)
 	require.ErrorIs(t, gotError, wantError)
 	dbMock.AssertCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
@@ -109,8 +109,8 @@ func TestGetAccountsByIdForUpdate_ScanError(t *testing.T) {
 	rowsMock.AssertCalled(t, "Close")
 }
 
-func TestGetAccountsByIdForUpdate_RowsError(t *testing.T) {
-	params := GetAccountsByIdForUpdateParams{}
+func TestGetTwoAccountsByIdForUpdate_RowsError(t *testing.T) {
+	params := GetTwoAccountsByIdForUpdateParams{}
 	wantError := errors.New(utils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
@@ -122,7 +122,7 @@ func TestGetAccountsByIdForUpdate_RowsError(t *testing.T) {
 	rowsMock.On("Close").Return()
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(rowsMock, nil)
 
-	gotUsers, gotError := New(dbMock).GetAccountsByIdForUpdate(ctx, params)
+	gotUsers, gotError := New(dbMock).GetTwoAccountsByIdForUpdate(ctx, params)
 	require.Nil(t, gotUsers)
 	require.ErrorIs(t, gotError, wantError)
 	dbMock.AssertCalled(t, "Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
@@ -242,7 +242,7 @@ func TestOffsetBalance(t *testing.T) {
 	deltaBalance := int64(utils.RandIntInRange(-1e6, 1e6))
 	wantBalance := acc.Balance + deltaBalance
 
-	gotAcc, err := testStore.OffsetBalance(ctx, OffsetBalanceParams{
+	gotAcc, err := testStore.OffsetAccountBalance(ctx, OffsetAccountBalanceParams{
 		ID:    acc.ID,
 		Delta: int64(deltaBalance),
 	})

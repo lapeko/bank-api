@@ -10,7 +10,13 @@ JOIN users as u
 ON a.user_id = u.id
 WHERE a.id = $1;
 
--- name: GetAccountsByIdForUpdate :many
+-- name: GetAccountByIdForUpdate :one
+SELECT *
+FROM accounts
+WHERE id = $1
+FOR UPDATE;
+
+-- name: GetTwoAccountsByIdForUpdate :many
 SELECT *
 FROM accounts
 WHERE id IN ($1, $2)
@@ -28,7 +34,7 @@ OFFSET $2;
 -- name: GetTotalAccountsCount :one
 SELECT COUNT(*) AS total_count FROM accounts;
 
--- name: OffsetBalance :one
+-- name: OffsetAccountBalance :one
 UPDATE accounts
 SET balance = balance + sqlc.arg(delta)
 WHERE id = $1

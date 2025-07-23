@@ -88,7 +88,38 @@ func (q *Queries) GetAccountById(ctx context.Context, id int64) (GetAccountByIdR
 	return i, err
 }
 
-const getAccountsByIdForUpdate = `-- name: GetAccountsByIdForUpdate :many
+const getAccountByIdForUpdate = `-- name: GetAccountByIdForUpdate :one
+SELECT id, user_id, currency, balance, created_at
+FROM accounts
+WHERE id = $1
+FOR UPDATE
+`
+
+func (q *Queries) GetAccountByIdForUpdate(ctx context.Context, id int64) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountByIdForUpdate, id)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Currency,
+		&i.Balance,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getTotalAccountsCount = `-- name: GetTotalAccountsCount :one
+SELECT COUNT(*) AS total_count FROM accounts
+`
+
+func (q *Queries) GetTotalAccountsCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalAccountsCount)
+	var total_count int64
+	err := row.Scan(&total_count)
+	return total_count, err
+}
+
+const getTwoAccountsByIdForUpdate = `-- name: GetTwoAccountsByIdForUpdate :many
 SELECT id, user_id, currency, balance, created_at
 FROM accounts
 WHERE id IN ($1, $2)
@@ -96,13 +127,13 @@ ORDER BY id
 FOR UPDATE
 `
 
-type GetAccountsByIdForUpdateParams struct {
+type GetTwoAccountsByIdForUpdateParams struct {
 	ID   int64 `json:"id"`
 	ID_2 int64 `json:"id_2"`
 }
 
-func (q *Queries) GetAccountsByIdForUpdate(ctx context.Context, arg GetAccountsByIdForUpdateParams) ([]Account, error) {
-	rows, err := q.db.Query(ctx, getAccountsByIdForUpdate, arg.ID, arg.ID_2)
+func (q *Queries) GetTwoAccountsByIdForUpdate(ctx context.Context, arg GetTwoAccountsByIdForUpdateParams) ([]Account, error) {
+	rows, err := q.db.Query(ctx, getTwoAccountsByIdForUpdate, arg.ID, arg.ID_2)
 	if err != nil {
 		return nil, err
 	}
@@ -125,17 +156,6 @@ func (q *Queries) GetAccountsByIdForUpdate(ctx context.Context, arg GetAccountsB
 		return nil, err
 	}
 	return items, nil
-}
-
-const getTotalAccountsCount = `-- name: GetTotalAccountsCount :one
-SELECT COUNT(*) AS total_count FROM accounts
-`
-
-func (q *Queries) GetTotalAccountsCount(ctx context.Context) (int64, error) {
-	row := q.db.QueryRow(ctx, getTotalAccountsCount)
-	var total_count int64
-	err := row.Scan(&total_count)
-	return total_count, err
 }
 
 const listAccounts = `-- name: ListAccounts :many
@@ -190,20 +210,20 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]L
 	return items, nil
 }
 
-const offsetBalance = `-- name: OffsetBalance :one
+const offsetAccountBalance = `-- name: OffsetAccountBalance :one
 UPDATE accounts
 SET balance = balance + $2
 WHERE id = $1
 RETURNING id, user_id, currency, balance, created_at
 `
 
-type OffsetBalanceParams struct {
+type OffsetAccountBalanceParams struct {
 	ID    int64 `json:"id"`
 	Delta int64 `json:"delta"`
 }
 
-func (q *Queries) OffsetBalance(ctx context.Context, arg OffsetBalanceParams) (Account, error) {
-	row := q.db.QueryRow(ctx, offsetBalance, arg.ID, arg.Delta)
+func (q *Queries) OffsetAccountBalance(ctx context.Context, arg OffsetAccountBalanceParams) (Account, error) {
+	row := q.db.QueryRow(ctx, offsetAccountBalance, arg.ID, arg.Delta)
 	var i Account
 	err := row.Scan(
 		&i.ID,

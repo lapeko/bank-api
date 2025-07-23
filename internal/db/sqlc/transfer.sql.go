@@ -34,6 +34,31 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 	return i, err
 }
 
+const getTotalTransfersCount = `-- name: GetTotalTransfersCount :one
+SELECT COUNT(*) as total_count
+FROM transfers
+`
+
+func (q *Queries) GetTotalTransfersCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalTransfersCount)
+	var total_count int64
+	err := row.Scan(&total_count)
+	return total_count, err
+}
+
+const getTotalTransfersCountByAccount = `-- name: GetTotalTransfersCountByAccount :one
+SELECT COUNT(*) as total_count
+FROM transfers
+WHERE account_from = $1 OR account_to = $1
+`
+
+func (q *Queries) GetTotalTransfersCountByAccount(ctx context.Context, accoutID int64) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalTransfersCountByAccount, accoutID)
+	var total_count int64
+	err := row.Scan(&total_count)
+	return total_count, err
+}
+
 const listTransfers = `-- name: ListTransfers :many
 SELECT id, account_from, account_to, amount, created_at
 FROM transfers
@@ -75,19 +100,19 @@ func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([
 const listTransfersByAccount = `-- name: ListTransfersByAccount :many
 SELECT id, account_from, account_to, amount, created_at
 FROM transfers
-WHERE account_from = $1 OR account_to = $1
-LIMIT $2
-OFFSET $3
+WHERE account_from = $3 OR account_to = $3
+LIMIT $1
+OFFSET $2
 `
 
 type ListTransfersByAccountParams struct {
-	AccountFrom int64 `json:"account_from"`
-	Limit       int32 `json:"limit"`
-	Offset      int32 `json:"offset"`
+	Limit    int32 `json:"limit"`
+	Offset   int32 `json:"offset"`
+	AccoutID int64 `json:"accout_id"`
 }
 
 func (q *Queries) ListTransfersByAccount(ctx context.Context, arg ListTransfersByAccountParams) ([]Transfer, error) {
-	rows, err := q.db.Query(ctx, listTransfersByAccount, arg.AccountFrom, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listTransfersByAccount, arg.Limit, arg.Offset, arg.AccoutID)
 	if err != nil {
 		return nil, err
 	}

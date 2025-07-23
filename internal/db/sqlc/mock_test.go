@@ -71,7 +71,7 @@ func (m *dbConnMock) Conn() *pgx.Conn {
 	return m.Called().Get(0).(*pgx.Conn)
 }
 
-func (m *dbConnMock) GetAccountsByIdForUpdate(ctx context.Context, arg GetAccountsByIdForUpdateParams) ([]Account, error) {
+func (m *dbConnMock) GetAccountsByIdForUpdate(ctx context.Context, arg GetTwoAccountsByIdForUpdateParams) ([]Account, error) {
 	callArgs := m.Called(ctx, arg)
 	return callArgs.Get(0).([]Account), callArgs.Error(1)
 }

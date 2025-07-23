@@ -15,7 +15,8 @@ func Register(path string, router *gin.RouterGroup, store db.Store) {
 	service = transferService{store: store}
 	g := router.Group(path)
 	g.POST("/", transferHandler)
-	g.POST("/external", externalTransferHandler)
+	g.POST("/in", transferInHandler)
+	g.POST("/out", transferOutHandler)
 	g.GET("/", listTransfersHandler)
 	g.GET("/account/:id", listTransfersByAccountHandler)
 }
@@ -38,14 +39,81 @@ func transferHandler(ctx *gin.Context) {
 	utils.SendSuccess(ctx, struct{}{})
 }
 
-func externalTransferHandler(ctx *gin.Context) {
+func transferInHandler(ctx *gin.Context) {
+	var req externalTransferRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		utils.SendError(ctx, err)
+		return
+	}
+	if err := service.transferIn(ctx, req); err != nil {
+		var target *db.TransferClientError
+		if errors.As(err, &target) {
+			utils.SendError(ctx, err)
+			return
+		}
+		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	utils.SendSuccess(ctx, struct{}{})
+}
 
+func transferOutHandler(ctx *gin.Context) {
+	var req externalTransferRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		utils.SendError(ctx, err)
+		return
+	}
+	acc, err := service.transferOut(ctx, req)
+	if err != nil {
+		var target *db.TransferClientError
+		if errors.As(err, &target) {
+			utils.SendError(ctx, err)
+			return
+		}
+		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	utils.SendSuccess(ctx, acc)
 }
 
 func listTransfersHandler(ctx *gin.Context) {
+	var paginationParams listTransfersRequest
 
+	if err := ctx.ShouldBind(&paginationParams); err != nil {
+		utils.SendError(ctx, err)
+		return
+	}
+
+	response, err := service.listTransfers(ctx, paginationParams)
+
+	if err != nil {
+		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
+		return
+	}
+
+	utils.SendSuccess(ctx, response)
 }
 
 func listTransfersByAccountHandler(ctx *gin.Context) {
+	var uriParams uriIdRequest
+	var paginationParams listTransfersRequest
 
+	if err := ctx.ShouldBind(&paginationParams); err != nil {
+		utils.SendError(ctx, err)
+		return
+	}
+
+	if err := ctx.ShouldBindUri(&uriParams); err != nil {
+		utils.SendError(ctx, err)
+		return
+	}
+
+	response, err := service.listTransfersByAccount(ctx, paginationParams, uriParams.ID)
+
+	if err != nil {
+		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
+		return
+	}
+
+	utils.SendSuccess(ctx, response)
 }

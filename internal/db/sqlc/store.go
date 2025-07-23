@@ -15,7 +15,8 @@ type DBConn interface {
 
 type Store interface {
 	Querier
-	TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount int64) error
+	TransferMoney(context.Context, int64, int64, int64) error
+	TransferExternalMoney(context.Context, int64, int64) (Account, error)
 }
 
 type store struct {
@@ -70,7 +71,7 @@ func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount in
 	}
 
 	return s.execTX(ctx, func(q *Queries) error {
-		accs, err := q.GetAccountsByIdForUpdate(ctx, GetAccountsByIdForUpdateParams{accIdFrom, accIdTo})
+		accs, err := q.GetTwoAccountsByIdForUpdate(ctx, GetTwoAccountsByIdForUpdateParams{accIdFrom, accIdTo})
 		if err != nil {
 			return err
 		}
@@ -93,12 +94,30 @@ func (s *store) TransferMoney(ctx context.Context, accIdFrom, accIdTo, amount in
 		if _, err := q.CreateTransfer(ctx, CreateTransferParams{accIdFrom, accIdTo, amount}); err != nil {
 			return err
 		}
-		if _, err := q.OffsetBalance(ctx, OffsetBalanceParams{accIdFrom, -amount}); err != nil {
+		if _, err := q.OffsetAccountBalance(ctx, OffsetAccountBalanceParams{accIdFrom, -amount}); err != nil {
 			return err
 		}
-		if _, err := q.OffsetBalance(ctx, OffsetBalanceParams{accIdTo, amount}); err != nil {
+		if _, err := q.OffsetAccountBalance(ctx, OffsetAccountBalanceParams{accIdTo, amount}); err != nil {
 			return err
 		}
 		return nil
 	})
+}
+
+func (s *store) TransferExternalMoney(ctx context.Context, accountId, amount int64) (updatedAcc Account, e error) {
+	e = s.execTX(ctx, func(q *Queries) error {
+		acc, err := q.GetAccountByIdForUpdate(ctx, accountId)
+		if err != nil {
+			return err
+		}
+		if amount < 0 && acc.Balance+amount < 0 {
+			return &TransferClientError{InsufficientFunds}
+		}
+		if _, err = q.CreateEntry(ctx, CreateEntryParams{AccountID: accountId, Amount: amount}); err != nil {
+			return err
+		}
+		updatedAcc, err = q.OffsetAccountBalance(ctx, OffsetAccountBalanceParams{ID: accountId, Delta: amount})
+		return err
+	})
+	return
 }
