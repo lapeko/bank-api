@@ -17,7 +17,7 @@ func Register(path string, router *gin.RouterGroup, store db.Store) {
 
 	g.POST("/signup", signupHandler)
 	g.POST("/signin", signinHandler)
-	g.POST("/signout", signoutHandler)
+	g.POST("/refresh", refreshHandler)
 }
 
 func signupHandler(ctx *gin.Context) {
@@ -32,19 +32,19 @@ func signupHandler(ctx *gin.Context) {
 		return
 	}
 	params := db.CreateUserParams{FullName: usr.FullName, Email: usr.Email, HashedPassword: hash}
-	usrRes, err := service.createUser(ctx, params)
+	res, err := service.createUser(ctx, params)
 	if err != nil {
 		// TODO handle email taken
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
 		return
 	}
-	utils.SendSuccessWithStatusCode(ctx, usrRes, http.StatusCreated)
+	utils.SendSuccessWithStatusCode(ctx, res, http.StatusCreated)
 }
 
 func signinHandler(ctx *gin.Context) {
 
 }
 
-func signoutHandler(ctx *gin.Context) {
+func refreshHandler(ctx *gin.Context) {
 
 }

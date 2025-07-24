@@ -2,11 +2,11 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/account"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/auth"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/entry"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/transfer"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/user"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/domains/account"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/domains/auth"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/domains/entry"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/domains/transfer"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/domains/user"
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
 )
 
