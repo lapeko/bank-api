@@ -7,6 +7,23 @@ import (
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/utils"
 )
 
+type authClientErrorMessage string
+
+const (
+	emailDuplicate      authClientErrorMessage = "email duplicated"
+	emailNotFound       authClientErrorMessage = "user with given email does not exist"
+	wrongPassword       authClientErrorMessage = "wrong password"
+	invalidRefreshToken authClientErrorMessage = "provided refresh token is invalid"
+)
+
+type authClientError struct {
+	message authClientErrorMessage
+}
+
+func (e *authClientError) Error() string {
+	return string(e.message)
+}
+
 func genAccessToken(userId int64) (string, error) {
 	now := time.Now()
 	claims := utils.JWTUserClaims{

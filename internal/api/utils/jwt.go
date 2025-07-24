@@ -10,7 +10,7 @@ type JWTUserClaims struct {
 	jwt.RegisteredClaims
 }
 
-var JwtKey = config.Get().JwtSecretKey
+var JwtKey = []byte(config.Get().JwtSecretKey)
 
 func ParseJwtToken(tokenString string) (*JWTUserClaims, bool) {
 	token, err := jwt.ParseWithClaims(tokenString, &JWTUserClaims{}, func(t *jwt.Token) (any, error) {

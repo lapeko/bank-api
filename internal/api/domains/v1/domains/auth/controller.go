@@ -1,12 +1,15 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/domains/v1/utils"
 	apiUtils "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/utils"
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
+	internalUtils "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
 )
 
 var service authService
@@ -34,7 +37,12 @@ func signupHandler(ctx *gin.Context) {
 	params := db.CreateUserParams{FullName: usr.FullName, Email: usr.Email, HashedPassword: hash}
 	res, err := service.createUser(ctx, params)
 	if err != nil {
-		// TODO handle email taken
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			if pgErr.Code == internalUtils.PgErrCodeUniqueViolation {
+				utils.SendError(ctx, &authClientError{emailDuplicate})
+				return
+			}
+		}
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
 		return
 	}
@@ -42,9 +50,39 @@ func signupHandler(ctx *gin.Context) {
 }
 
 func signinHandler(ctx *gin.Context) {
-
+	var req signinRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		utils.SendError(ctx, err)
+		return
+	}
+	tokens, err := service.signIn(ctx, req)
+	var targetErr *authClientError
+	if err != nil {
+		if errors.As(err, &targetErr) {
+			utils.SendError(ctx, err)
+			return
+		}
+		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	utils.SendSuccess(ctx, tokens)
 }
 
 func refreshHandler(ctx *gin.Context) {
-
+	var req refreshTokenRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		utils.SendError(ctx, err)
+		return
+	}
+	res, err := service.refreshToken(ctx, req)
+	if err != nil {
+		var target *authClientError
+		if errors.As(err, &target) {
+			utils.SendError(ctx, err)
+			return
+		}
+		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
+		return
+	}
+	utils.SendSuccess(ctx, res)
 }

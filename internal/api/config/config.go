@@ -9,7 +9,7 @@ import (
 type config struct {
 	AppPort      int    `env:"APP_PORT" envDefault:"3000"`
 	PostgresUrl  string `env:"POSTGRES_URL,required"`
-	JwtSecretKey []byte `env:"JWT_SECRET_KEY,required"`
+	JwtSecretKey string `env:"JWT_SECRET_KEY,required"`
 }
 
 var cfg *config

@@ -12,22 +12,6 @@ type authService struct {
 	store db.Store
 }
 
-type authClientErrorMessage string
-
-const (
-	emailNotFound       authClientErrorMessage = "user with given email does not exist"
-	wrongPassword       authClientErrorMessage = "wrong password"
-	refreshTokenExpired authClientErrorMessage = "refresh token expired"
-)
-
-type authClientError struct {
-	message authClientErrorMessage
-}
-
-func (e *authClientError) Error() string {
-	return string(e.message)
-}
-
 func (s *authService) createUser(ctx context.Context, args db.CreateUserParams) (res createUserResponse, err error) {
 	user, err := s.store.CreateUser(ctx, args)
 	if err != nil {
@@ -44,7 +28,7 @@ func (s *authService) createUser(ctx context.Context, args db.CreateUserParams) 
 	return
 }
 
-func (s *authService) signIn(ctx context.Context, args signInRequest) (tkns tokens, err error) {
+func (s *authService) signIn(ctx context.Context, args signinRequest) (tkns tokens, err error) {
 	user, err := s.store.GetUserByEmail(ctx, args.Email)
 	if err != nil {
 		return tkns, &authClientError{emailNotFound}
@@ -56,7 +40,11 @@ func (s *authService) signIn(ctx context.Context, args signInRequest) (tkns toke
 	return
 }
 
-// TODO complete
-func (s *authService) refreshToken(ctx context.Context, req refreshTokenRequest) string {
-	return ""
+func (s *authService) refreshToken(ctx context.Context, args refreshTokenRequest) (rtknRes refreshTokenResponse, err error) {
+	claims, ok := apiUtils.ParseJwtToken(args.RefreshToken)
+	if !ok {
+		return rtknRes, &authClientError{invalidRefreshToken}
+	}
+	rtknRes.AccessToken, err = genAccessToken(claims.UserId)
+	return
 }

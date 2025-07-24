@@ -9,7 +9,7 @@ type tokens struct {
 
 type createUserRequest struct {
 	FullName string `json:"full_name" binding:"required,fullname"`
-	signInRequest
+	signinRequest
 }
 
 type createUserResponse struct {
@@ -17,11 +17,15 @@ type createUserResponse struct {
 	tokens
 }
 
-type signInRequest struct {
+type signinRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,password"`
 }
 
 type refreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+type refreshTokenResponse struct {
+	AccessToken string `json:"access_token"`
 }
