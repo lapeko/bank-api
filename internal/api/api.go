@@ -7,10 +7,10 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/health"
-	v1 "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/domains/health"
+	v1 "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/domains/v1"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/utils"
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
 )
 
 type Api interface {

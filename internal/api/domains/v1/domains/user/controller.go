@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/domains/v1/utils"
+	apiUtils "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/utils"
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
-	rootUtils "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
 )
 
 var service *userService
@@ -117,7 +117,7 @@ func updateUserPasswordHandler(ctx *gin.Context) {
 		utils.SendError(ctx, err)
 		return
 	}
-	hash, err := rootUtils.HashPassword(body.NewPassword)
+	hash, err := apiUtils.HashPassword(body.NewPassword)
 	if err != nil {
 		utils.SendErrorWithStatusCode(ctx, err, http.StatusInternalServerError)
 		return

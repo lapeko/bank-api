@@ -1,6 +1,6 @@
 package auth
 
-import "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/utils"
+import "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/domains/v1/utils"
 
 type tokens struct {
 	AccessToken  string `json:"access_token"`
@@ -20,4 +20,8 @@ type createUserResponse struct {
 type signInRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,password"`
+}
+
+type refreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
 }

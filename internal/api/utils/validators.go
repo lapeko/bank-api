@@ -1,10 +1,13 @@
 package utils
 
-import "github.com/go-playground/validator/v10"
+import (
+	"github.com/go-playground/validator/v10"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
+)
 
 func CurrencyValidator(fl validator.FieldLevel) bool {
-	if currency, ok := fl.Field().Interface().(Currency); ok {
-		return IsCurrency(currency)
+	if currency, ok := fl.Field().Interface().(utils.Currency); ok {
+		return utils.IsCurrency(currency)
 	}
 	return false
 }

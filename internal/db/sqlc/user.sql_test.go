@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -65,7 +65,7 @@ func TestListUsers(t *testing.T) {
 func TestGetTotalUsersCount(t *testing.T) {
 	defer cleanTestStore(t)
 
-	want := utils.RandIntInRange(5, 15)
+	want := utils.GenRandIntInRange(5, 15)
 
 	for i := 0; i < want; i++ {
 		createRandomUser(t)

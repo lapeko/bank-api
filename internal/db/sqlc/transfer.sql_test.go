@@ -3,12 +3,12 @@ package db
 import (
 	"testing"
 
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 	"github.com/stretchr/testify/require"
 )
 
 func createRandomTransfer(t *testing.T, acc1, acc2 Account) Transfer {
-	randAmount := int64(utils.RandIntInRange(-1e6, 1e6))
+	randAmount := int64(utils.GenRandIntInRange(-1e6, 1e6))
 
 	got, err := testStore.CreateTransfer(ctx, CreateTransferParams{
 		AccountFrom: acc1.ID,

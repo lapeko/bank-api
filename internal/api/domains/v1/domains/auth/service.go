@@ -3,9 +3,9 @@ package auth
 import (
 	"context"
 
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/v1/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/domains/v1/utils"
+	apiUtils "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/utils"
 	db "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc"
-	internalUtils "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
 )
 
 type authService struct {
@@ -49,9 +49,14 @@ func (s *authService) signIn(ctx context.Context, args signInRequest) (tkns toke
 	if err != nil {
 		return tkns, &authClientError{emailNotFound}
 	}
-	if ok := internalUtils.CompareHashAndPassword(user.HashedPassword, args.Password); !ok {
+	if ok := apiUtils.CompareHashAndPassword(user.HashedPassword, args.Password); !ok {
 		return tkns, &authClientError{wrongPassword}
 	}
 	tkns, err = genTokens(user.ID)
 	return
+}
+
+// TODO complete
+func (s *authService) refreshToken(ctx context.Context, req refreshTokenRequest) string {
+	return ""
 }

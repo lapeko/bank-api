@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -135,7 +135,7 @@ func TestGetTwoAccountsByIdForUpdate_RowsError(t *testing.T) {
 func TestGetTotalCount(t *testing.T) {
 	defer cleanTestStore(t)
 
-	want := utils.RandIntInRange(5, 15)
+	want := utils.GenRandIntInRange(5, 15)
 	var wg sync.WaitGroup
 	wg.Add(want)
 
@@ -239,7 +239,7 @@ func TestOffsetBalance(t *testing.T) {
 	defer cleanTestStore(t)
 
 	acc := createRandomAccount(t, createRandomUser(t))
-	deltaBalance := int64(utils.RandIntInRange(-1e6, 1e6))
+	deltaBalance := int64(utils.GenRandIntInRange(-1e6, 1e6))
 	wantBalance := acc.Balance + deltaBalance
 
 	gotAcc, err := testStore.OffsetAccountBalance(ctx, OffsetAccountBalanceParams{

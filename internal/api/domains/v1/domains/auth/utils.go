@@ -1,25 +1,17 @@
 package auth
 
 import (
-	"errors"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/api/utils"
 )
-
-var jwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
-
-type userClaims struct {
-	UserId int64 `json:"user_id"`
-	jwt.RegisteredClaims
-}
 
 func genAccessToken(userId int64) (string, error) {
 	now := time.Now()
-	claims := userClaims{
-		userId,
-		jwt.RegisteredClaims{
+	claims := utils.JWTUserClaims{
+		UserId: userId,
+		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(15 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
@@ -27,14 +19,14 @@ func genAccessToken(userId int64) (string, error) {
 	}
 	return jwt.
 		NewWithClaims(jwt.SigningMethodHS256, claims).
-		SignedString(jwtKey)
+		SignedString(utils.JwtKey)
 }
 
 func genRefreshToken(userId int64) (string, error) {
 	now := time.Now()
-	claims := userClaims{
-		userId,
-		jwt.RegisteredClaims{
+	claims := utils.JWTUserClaims{
+		UserId: userId,
+		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(14 * 24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
@@ -42,7 +34,7 @@ func genRefreshToken(userId int64) (string, error) {
 	}
 	return jwt.
 		NewWithClaims(jwt.SigningMethodHS256, claims).
-		SignedString(jwtKey)
+		SignedString(utils.JwtKey)
 }
 
 func genTokens(userId int64) (tokens, error) {
@@ -58,17 +50,4 @@ func genTokens(userId int64) (tokens, error) {
 	tkns.AccessToken = accessToken
 	tkns.RefreshToken = refreshToken
 	return tkns, nil
-}
-
-func parseToken(tokenString string) (claims *userClaims, err error) {
-	token, err := jwt.ParseWithClaims(tokenString, &userClaims{}, func(t *jwt.Token) (any, error) {
-		return jwtKey, nil
-	})
-	if err != nil {
-		return
-	}
-	if claims, ok := token.Claims.(*userClaims); ok {
-		return claims, nil
-	}
-	return claims, errors.New("jwt claim parse failure")
 }
