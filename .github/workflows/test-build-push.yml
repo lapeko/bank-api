@@ -16,7 +16,7 @@ jobs:
       with:
         go-version: '1.24.4'
     
-    - name: Use caching
+    - name: Cache GO dependencies
       uses: actions/cache@v4
       with:
         path: |       
@@ -28,6 +28,26 @@ jobs:
     
     - name: Download dependencies
       run: go mod download
+
+    - name: Cache ~/.local/bin
+      id: cache-local-bin
+      uses: actions/cache@v4
+      with:
+        path: |       
+          ~/.local/bin
+        key: ${{ runner.os }}-bin-${{ hashFiles('**/*') }}
+        restore-keys: |
+          ${{ runner.os }}-bin-
+
+    - name: Install migrate tool
+      if: steps.cache-local-bin.outputs.cache-hit != 'true'
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.18.3/migrate.linux-amd64.tar.gz | tar xz
+        mkdir -p ~/.local/bin
+        mv migrate ~/.local/bin
+    
+    - name: Add migrate to PATH
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Run tests with coverage
       run: go test -v -coverprofile=coverage.out ./...
