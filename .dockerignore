@@ -1,0 +1,9 @@
+.git
+.github
+.gitignore
+infra
+Makefile
+*.md
+*.log
+*.env
+test
