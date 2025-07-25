@@ -1,0 +1,49 @@
+name: Test with coverage and codecov
+on: 
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore: ['.github/workflows/**']
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Git pull
+      uses: actions/checkout@v4
+    
+    - name: Install go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24.4'
+    
+    - name: Use caching
+      uses: actions/cache@v4
+      with:
+        path: |       
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests with coverage
+      run: go test -v -coverprofile=coverage.out ./...
+    
+    - name: Create coverage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: codecov
+        path: coverage.out
+
+    - name: Upload coverage to codecov
+      uses: codecov/codecov-action@v5
+      with:
+        files: coverage.out
+        token: ${{ secrets.CODECOV_TOKEN }}
+    
+    - name: Show Codecov link
+      run: |
+        echo "Coverage report (Codecov): https://app.codecov.io/gh/${{ github.repository }}"
