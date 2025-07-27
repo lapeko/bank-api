@@ -2,8 +2,10 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
 	internalUtils "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
@@ -102,6 +104,7 @@ func TestTransferMoney_NotPositiveAmountError(t *testing.T) {
 	var target *TransferClientError
 	require.ErrorAs(t, err, &target)
 	require.Equal(t, target.message, NotPositiveAmount)
+	require.Equal(t, target.Error(), fmt.Sprintf("transfer error: %s", NotPositiveAmount))
 
 	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
 	require.Equal(t, extAcc1.Balance, zero)
@@ -187,4 +190,30 @@ func TestTransferMoney_TXBeginError(t *testing.T) {
 	err := testStoreMock.TransferMoney(ctx, 1, 2, int64(1))
 	require.Error(t, err)
 	require.ErrorIs(t, err, txError)
+}
+
+func TestTransferExternalMoney(t *testing.T) {
+	defer cleanTestStore(t)
+
+	acc := createAccountWithParams(t, CreateAccountParams{
+		UserID:   createRandomUser(t).ID,
+		Currency: internalUtils.CurrencyUSD,
+	})
+
+	transferAmount := utils.GenRandInt64InRange(1, 1e4)
+	got, err := testStore.TransferExternalMoney(ctx, acc.ID, transferAmount)
+	require.NoError(t, err)
+	require.NotEmpty(t, got)
+	require.Equal(t, got.Balance, acc.Balance+transferAmount)
+
+	gotEntry, err := testStore.ListEntriesByAccount(ctx, ListEntriesByAccountParams{
+		AccountID: acc.ID,
+		Limit:     10,
+		Offset:    0,
+	})
+	require.NoError(t, err)
+	require.Len(t, gotEntry, 1)
+	require.Equal(t, gotEntry[0].AccountID, acc.ID)
+	require.Equal(t, gotEntry[0].Amount, transferAmount)
+	require.WithinDuration(t, gotEntry[0].CreatedAt.Time, got.CreatedAt.Time, time.Second)
 }

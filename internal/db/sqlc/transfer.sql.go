@@ -52,8 +52,8 @@ FROM transfers
 WHERE account_from = $1 OR account_to = $1
 `
 
-func (q *Queries) GetTotalTransfersCountByAccount(ctx context.Context, accoutID int64) (int64, error) {
-	row := q.db.QueryRow(ctx, getTotalTransfersCountByAccount, accoutID)
+func (q *Queries) GetTotalTransfersCountByAccount(ctx context.Context, accountID int64) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalTransfersCountByAccount, accountID)
 	var total_count int64
 	err := row.Scan(&total_count)
 	return total_count, err
@@ -106,13 +106,13 @@ OFFSET $2
 `
 
 type ListTransfersByAccountParams struct {
-	Limit    int32 `json:"limit"`
-	Offset   int32 `json:"offset"`
-	AccoutID int64 `json:"accout_id"`
+	Limit     int32 `json:"limit"`
+	Offset    int32 `json:"offset"`
+	AccountID int64 `json:"account_id"`
 }
 
 func (q *Queries) ListTransfersByAccount(ctx context.Context, arg ListTransfersByAccountParams) ([]Transfer, error) {
-	rows, err := q.db.Query(ctx, listTransfersByAccount, arg.Limit, arg.Offset, arg.AccoutID)
+	rows, err := q.db.Query(ctx, listTransfersByAccount, arg.Limit, arg.Offset, arg.AccountID)
 	if err != nil {
 		return nil, err
 	}

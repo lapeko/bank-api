@@ -41,6 +41,18 @@ func TestCreateAccount(t *testing.T) {
 	createRandomAccount(t, createRandomUser(t))
 }
 
+func TestGetAccountByIdForUpdate(t *testing.T) {
+	defer cleanTestStore(t)
+
+	acc := createRandomAccount(t, createRandomUser(t))
+
+	accById, err := testStore.GetAccountByIdForUpdate(ctx, acc.ID)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, accById)
+	require.Equal(t, acc, accById)
+}
+
 func TestDeleteAccount(t *testing.T) {
 	defer cleanTestStore(t)
 

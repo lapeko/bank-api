@@ -22,7 +22,7 @@ type Querier interface {
 	GetTotalEntriesCount(ctx context.Context) (int64, error)
 	GetTotalEntriesCountByAccount(ctx context.Context, accountID int64) (int64, error)
 	GetTotalTransfersCount(ctx context.Context) (int64, error)
-	GetTotalTransfersCountByAccount(ctx context.Context, accoutID int64) (int64, error)
+	GetTotalTransfersCountByAccount(ctx context.Context, accountID int64) (int64, error)
 	GetTotalUsersCount(ctx context.Context) (int64, error)
 	GetTwoAccountsByIdForUpdate(ctx context.Context, arg GetTwoAccountsByIdForUpdateParams) ([]Account, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
