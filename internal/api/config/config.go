@@ -1,8 +1,6 @@
 package config
 
 import (
-	"log"
-
 	"github.com/caarlos0/env/v11"
 )
 
@@ -21,7 +19,7 @@ func Get() config {
 
 	cfg = &config{}
 	if err := env.Parse(cfg); err != nil {
-		log.Fatalf("Config parse error: %v", err)
+		panic("Config parse error: " + err.Error())
 	}
 	return *cfg
 }

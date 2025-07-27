@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils/testutils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ import (
 func createRandomAccount(t *testing.T, user User) Account {
 	want := CreateAccountParams{
 		UserID:   user.ID,
-		Currency: utils.GenRandCurrency(),
+		Currency: testutils.GenRandCurrency(),
 	}
 
 	return createAccountWithParams(t, want)
@@ -90,7 +90,7 @@ func TestGetTwoAccountsByIdForUpdate(t *testing.T) {
 
 func TestGetTwoAccountsByIdForUpdate_QueryError(t *testing.T) {
 	params := GetTwoAccountsByIdForUpdateParams{}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, wantError)
@@ -103,7 +103,7 @@ func TestGetTwoAccountsByIdForUpdate_QueryError(t *testing.T) {
 
 func TestGetTwoAccountsByIdForUpdate_ScanError(t *testing.T) {
 	params := GetTwoAccountsByIdForUpdateParams{}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	rowsMock := new(rowsMock)
@@ -123,7 +123,7 @@ func TestGetTwoAccountsByIdForUpdate_ScanError(t *testing.T) {
 
 func TestGetTwoAccountsByIdForUpdate_RowsError(t *testing.T) {
 	params := GetTwoAccountsByIdForUpdateParams{}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	rowsMock := new(rowsMock)
@@ -147,7 +147,7 @@ func TestGetTwoAccountsByIdForUpdate_RowsError(t *testing.T) {
 func TestGetTotalCount(t *testing.T) {
 	defer cleanTestStore(t)
 
-	want := utils.GenRandIntInRange(5, 15)
+	want := testutils.GenRandIntInRange(5, 15)
 	var wg sync.WaitGroup
 	wg.Add(want)
 
@@ -193,7 +193,7 @@ func TestListAccounts(t *testing.T) {
 
 func TestListAccounts_QueryError(t *testing.T) {
 	params := ListAccountsParams{Offset: 0, Limit: 2}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, wantError)
@@ -206,7 +206,7 @@ func TestListAccounts_QueryError(t *testing.T) {
 
 func TestListAccounts_ScanError(t *testing.T) {
 	params := ListAccountsParams{Offset: 0, Limit: 2}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	rowsMock := new(rowsMock)
@@ -226,7 +226,7 @@ func TestListAccounts_ScanError(t *testing.T) {
 
 func TestListAccounts_RowsError(t *testing.T) {
 	params := ListAccountsParams{Offset: 0, Limit: 2}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	rowsMock := new(rowsMock)
@@ -251,7 +251,7 @@ func TestOffsetBalance(t *testing.T) {
 	defer cleanTestStore(t)
 
 	acc := createRandomAccount(t, createRandomUser(t))
-	deltaBalance := int64(utils.GenRandIntInRange(-1e6, 1e6))
+	deltaBalance := int64(testutils.GenRandIntInRange(-1e6, 1e6))
 	wantBalance := acc.Balance + deltaBalance
 
 	gotAcc, err := testStore.OffsetAccountBalance(ctx, OffsetAccountBalanceParams{

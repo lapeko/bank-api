@@ -5,16 +5,16 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils/testutils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func createRandomUser(t *testing.T) User {
 	want := CreateUserParams{
-		FullName:       utils.GenRandFullName(),
-		Email:          utils.GetRandEmail(),
-		HashedPassword: utils.GenRandHashedPassword(),
+		FullName:       testutils.GenRandFullName(),
+		Email:          testutils.GetRandEmail(),
+		HashedPassword: testutils.GenRandHashedPassword(),
 	}
 
 	got, err := testStore.CreateUser(ctx, want)
@@ -65,7 +65,7 @@ func TestListUsers(t *testing.T) {
 func TestGetTotalUsersCount(t *testing.T) {
 	defer cleanTestStore(t)
 
-	want := utils.GenRandIntInRange(5, 15)
+	want := testutils.GenRandIntInRange(5, 15)
 
 	for i := 0; i < want; i++ {
 		createRandomUser(t)
@@ -79,7 +79,7 @@ func TestGetTotalUsersCount(t *testing.T) {
 
 func TestListUsers_QueryError(t *testing.T) {
 	params := ListUsersParams{Offset: 0, Limit: 2}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	dbMock.On("Query", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, wantError)
@@ -92,7 +92,7 @@ func TestListUsers_QueryError(t *testing.T) {
 
 func TestListUsers_ScanError(t *testing.T) {
 	params := ListUsersParams{Offset: 0, Limit: 2}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	rowsMock := new(rowsMock)
@@ -112,7 +112,7 @@ func TestListUsers_ScanError(t *testing.T) {
 
 func TestListUsers_RowsError(t *testing.T) {
 	params := ListUsersParams{Offset: 0, Limit: 2}
-	wantError := errors.New(utils.GenRandString(10))
+	wantError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	rowsMock := new(rowsMock)
@@ -138,9 +138,9 @@ func TestUpdateUserEmail(t *testing.T) {
 
 	user := createRandomUser(t)
 
-	newEmail := utils.GetRandEmail()
+	newEmail := testutils.GetRandEmail()
 	for newEmail == user.Email {
-		newEmail = utils.GetRandEmail()
+		newEmail = testutils.GetRandEmail()
 	}
 
 	require.NotEqual(t, user.Email, newEmail)
@@ -155,9 +155,9 @@ func TestUpdateUserName(t *testing.T) {
 
 	user := createRandomUser(t)
 
-	newName := utils.GenRandFullName()
+	newName := testutils.GenRandFullName()
 	for newName == user.FullName {
-		newName = utils.GenRandFullName()
+		newName = testutils.GenRandFullName()
 	}
 
 	require.NotEqual(t, user.FullName, newName)
@@ -172,9 +172,9 @@ func TestUpdateUserPassword(t *testing.T) {
 
 	user := createRandomUser(t)
 
-	newPassword := utils.GenRandHashedPassword()
+	newPassword := testutils.GenRandHashedPassword()
 	for newPassword == user.HashedPassword {
-		newPassword = utils.GenRandHashedPassword()
+		newPassword = testutils.GenRandHashedPassword()
 	}
 
 	require.NotEqual(t, user.HashedPassword, newPassword)

@@ -7,15 +7,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
-	internalUtils "github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils/testutils"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 const zero = int64(0)
 
-func createTwoAccountsWithBalances(t *testing.T, balance1, balance2 int64, currency internalUtils.Currency) (Account, Account) {
+func createTwoAccountsWithBalances(t *testing.T, balance1, balance2 int64, currency utils.Currency) (Account, Account) {
 	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: currency})
 	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: currency})
 
@@ -41,14 +41,14 @@ func queryTwoAccountsById(t *testing.T, acc1Id, acc2Id int64) (GetAccountByIdRow
 func TestTransferMoney(t *testing.T) {
 	defer cleanTestStore(t)
 
-	transferAmmount := utils.GenRandInt64InRange(1, 1e4)
-	acc1, acc2 := createTwoAccountsWithBalances(t, zero, transferAmmount, utils.GenRandCurrency())
+	transferAmount := testutils.GenRandInt64InRange(1, 1e4)
+	acc1, acc2 := createTwoAccountsWithBalances(t, zero, transferAmount, testutils.GenRandCurrency())
 
-	err := testStore.TransferMoney(ctx, acc2.ID, acc1.ID, transferAmmount)
+	err := testStore.TransferMoney(ctx, acc2.ID, acc1.ID, transferAmount)
 	require.NoError(t, err)
 
 	extAcc1, extAcc2 := queryTwoAccountsById(t, acc1.ID, acc2.ID)
-	require.Equal(t, extAcc1.Balance, transferAmmount)
+	require.Equal(t, extAcc1.Balance, transferAmount)
 	require.Equal(t, extAcc2.Balance, zero)
 }
 
@@ -57,12 +57,12 @@ func TestTransferMoney_Concurrently(t *testing.T) {
 
 	store := testStore
 
-	accBalance := utils.GenRandInt64InRange(1e5, 1e6)
-	acc2Balance := utils.GenRandInt64InRange(1e5, 1e6)
-	transferLeft := utils.GenRandInt64InRange(1, 1e4)
-	transferRight := utils.GenRandInt64InRange(1, 1e4)
+	accBalance := testutils.GenRandInt64InRange(1e5, 1e6)
+	acc2Balance := testutils.GenRandInt64InRange(1e5, 1e6)
+	transferLeft := testutils.GenRandInt64InRange(1, 1e4)
+	transferRight := testutils.GenRandInt64InRange(1, 1e4)
 
-	acc1, acc2 := createTwoAccountsWithBalances(t, accBalance, acc2Balance, utils.GenRandCurrency())
+	acc1, acc2 := createTwoAccountsWithBalances(t, accBalance, acc2Balance, testutils.GenRandCurrency())
 
 	iterations := 5
 	size := iterations * 2
@@ -98,7 +98,7 @@ func TestTransferMoney_Concurrently(t *testing.T) {
 func TestTransferMoney_NotPositiveAmountError(t *testing.T) {
 	defer cleanTestStore(t)
 
-	acc1, acc2 := createTwoAccountsWithBalances(t, zero, zero, utils.GenRandCurrency())
+	acc1, acc2 := createTwoAccountsWithBalances(t, zero, zero, testutils.GenRandCurrency())
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, zero)
 	var target *TransferClientError
@@ -114,7 +114,7 @@ func TestTransferMoney_NotPositiveAmountError(t *testing.T) {
 func TestTransferMoney_SameAccountError(t *testing.T) {
 	defer cleanTestStore(t)
 
-	acc := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.GenRandCurrency()})
+	acc := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: testutils.GenRandCurrency()})
 
 	err := testStore.TransferMoney(ctx, acc.ID, acc.ID, 1)
 	var target *TransferClientError
@@ -129,8 +129,8 @@ func TestTransferMoney_SameAccountError(t *testing.T) {
 func TestTransferMoney_DifferentCurrencyError(t *testing.T) {
 	defer cleanTestStore(t)
 
-	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: internalUtils.CurrencyEURO})
-	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: internalUtils.CurrencyUSD})
+	acc1 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.CurrencyEURO})
+	acc2 := createAccountWithParams(t, CreateAccountParams{UserID: createRandomUser(t).ID, Currency: utils.CurrencyUSD})
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, 1)
 	var target *TransferClientError
@@ -145,7 +145,7 @@ func TestTransferMoney_DifferentCurrencyError(t *testing.T) {
 func TestTransferMoney_InsufficientFundsError(t *testing.T) {
 	defer cleanTestStore(t)
 
-	acc1, acc2 := createTwoAccountsWithBalances(t, zero, zero, utils.GenRandCurrency())
+	acc1, acc2 := createTwoAccountsWithBalances(t, zero, zero, testutils.GenRandCurrency())
 
 	err := testStore.TransferMoney(ctx, acc1.ID, acc2.ID, 1)
 	var target *TransferClientError
@@ -160,8 +160,8 @@ func TestTransferMoney_InsufficientFundsError(t *testing.T) {
 func TestTransferMoney_GetAccountsByIdForUpdateError(t *testing.T) {
 	defer cleanTestStore(t)
 
-	queryErr := errors.New(utils.GenRandString(10))
-	rbcErrMsg := errors.New(utils.GenRandString(10))
+	queryErr := errors.New(testutils.GenRandString(10))
+	rbcErrMsg := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	txMock := new(dbConnMock)
@@ -180,7 +180,7 @@ func TestTransferMoney_GetAccountsByIdForUpdateError(t *testing.T) {
 func TestTransferMoney_TXBeginError(t *testing.T) {
 	defer cleanTestStore(t)
 
-	txError := errors.New(utils.GenRandString(10))
+	txError := errors.New(testutils.GenRandString(10))
 
 	dbMock := new(dbConnMock)
 	dbMock.On("Begin", ctx).Return(new(dbConnMock), txError)
@@ -197,10 +197,10 @@ func TestTransferExternalMoney(t *testing.T) {
 
 	acc := createAccountWithParams(t, CreateAccountParams{
 		UserID:   createRandomUser(t).ID,
-		Currency: internalUtils.CurrencyUSD,
+		Currency: utils.CurrencyUSD,
 	})
 
-	transferAmount := utils.GenRandInt64InRange(1, 1e4)
+	transferAmount := testutils.GenRandInt64InRange(1, 1e4)
 	got, err := testStore.TransferExternalMoney(ctx, acc.ID, transferAmount)
 	require.NoError(t, err)
 	require.NotEmpty(t, got)

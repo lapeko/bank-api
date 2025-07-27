@@ -3,12 +3,12 @@ package db
 import (
 	"testing"
 
-	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/utils"
+	"github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
 func createRandomEntry(t *testing.T, acc Account) Entry {
-	randAmount := int64(utils.GenRandIntInRange(-1e6, 1e6))
+	randAmount := int64(testutils.GenRandIntInRange(-1e6, 1e6))
 
 	got, err := testStore.CreateEntry(ctx, CreateEntryParams{
 		AccountID: acc.ID,
