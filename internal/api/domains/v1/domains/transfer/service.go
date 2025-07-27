@@ -52,7 +52,7 @@ func (s *transferService) listTransfersByAccount(ctx context.Context, args listT
 	var transfers []db.Transfer
 	var totalCount int64
 
-	params := db.ListTransfersByAccountParams{AccoutID: accountId, Limit: args.Size, Offset: (args.Page - 1) * args.Size}
+	params := db.ListTransfersByAccountParams{AccountID: accountId, Limit: args.Size, Offset: (args.Page - 1) * args.Size}
 
 	g := errgroup.Group{}
 	g.Go(func() (e error) {
