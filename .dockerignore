@@ -1,7 +1,8 @@
 .git
 .github
 .gitignore
-infra
+infra/docker*
+infra/Docker*
 Makefile
 *.md
 *.log
