@@ -59,11 +59,13 @@ jobs:
         path: coverage.out
 
     - name: Upload coverage to codecov
+      if: !startsWith(github.ref, 'refs/heads/task-')
       uses: codecov/codecov-action@v5
       with:
         files: coverage.out
         token: ${{ secrets.CODECOV_TOKEN }}
     
     - name: Show Codecov link
+      if: !startsWith(github.ref, 'refs/heads/task-')
       run: |
         echo "Coverage report (Codecov): https://app.codecov.io/gh/${{ github.repository }}"
