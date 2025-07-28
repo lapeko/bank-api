@@ -23,10 +23,8 @@ func New(conn *pgxpool.Pool) Api {
 	router := gin.Default()
 	utils.RegisterValidators()
 	store := db.NewStore(conn)
-
 	v1.Register("/v1", router, store)
 	health.Register("/health", router)
-
 	return &api{router: router}
 }
 
