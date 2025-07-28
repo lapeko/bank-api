@@ -2,7 +2,7 @@ name: Test with coverage and codecov
 on: 
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, 'task-*']
     paths-ignore: ['.github/workflows/**']
 jobs:
   test:
