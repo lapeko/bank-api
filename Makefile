@@ -1,7 +1,8 @@
 .PHONY: \
 	migrate migrate-down sqlc \
 	docker-all-up docker-db-up docker-all-down docker-all-clear-down docker-build \
-	local-api-up
+	local-api-up \
+	gen-mock-store
 
 
 POSTGRES_URL=postgres://postgres:1234@localhost:5432/bank?sslmode=disable
@@ -39,3 +40,10 @@ local-api-up:
 		JWT_SECRET_KEY=my_secret \
 		APP_PORT=3000 \
 		&& go run ./cmd/api/...
+
+gen-mock-store:
+	mkdir -p internal/db/mockdb && \
+	mockgen \
+		-destination=internal/db/mockdb/store.go \
+		-package=mockdb \
+		github.com/lapeko/udemy__backend-master-class-golang-postgresql-kubernetes/internal/db/sqlc Store

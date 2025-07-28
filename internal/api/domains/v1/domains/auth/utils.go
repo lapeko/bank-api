@@ -36,7 +36,7 @@ func genAccessToken(userId int64) (string, error) {
 	}
 	return jwt.
 		NewWithClaims(jwt.SigningMethodHS256, claims).
-		SignedString(utils.JwtKey)
+		SignedString(utils.GetJwtKey())
 }
 
 func genRefreshToken(userId int64) (string, error) {
@@ -51,7 +51,7 @@ func genRefreshToken(userId int64) (string, error) {
 	}
 	return jwt.
 		NewWithClaims(jwt.SigningMethodHS256, claims).
-		SignedString(utils.JwtKey)
+		SignedString(utils.GetJwtKey())
 }
 
 func genTokens(userId int64) (tokens, error) {
