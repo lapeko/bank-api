@@ -1,25 +1,27 @@
-{{- if ne .Values.environment "production" }}
+{{- if eq .Values.environment "development" }}
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres-deploy
+  name: {{ .Values.postgres.name }}-deploy
+  namespace: {{ .Values.appName }}
   labels:
-    app: bank-api
+    app: {{ .Values.appName }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: {{ .Values.postgres.name }}
   template:
     metadata:
+      namespace: {{ .Values.appName }}
       labels:
-        app: postgres
+        app: {{ .Values.postgres.name }}
     spec:
       nodeName: node02
       containers:
-      - name: postgres
-        image: postgres:17-alpine
+      - name: {{ .Values.postgres.name }}
+        image: {{ .Values.postgres.name }}:17-alpine
         env:
         - name: POSTGRES_USER
           value: {{ .Values.postgres.username }}
@@ -42,15 +44,27 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.postgres.serviceName }}
+  name: {{ .Values.postgres.name }}-service
+  namespace: {{ .Values.appName }}
   labels:
-    app: bank-api
+    app: {{ .Values.appName }}
 spec:
   selector:
-    app: postgres
+    app: {{ .Values.postgres.name }}
   ports:
     - protocol: TCP
       port: {{ .Values.postgres.port }}
       targetPort: {{ .Values.postgres.port }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bank-api-secret
+  namespace: {{ .Values.appName }}
+type: Opaque
+data:
+  POSTGRES_URL: {{ .Values.secret.postgresUrl | b64enc | quote }}
+  JWT_SECRET_KEY: {{ .Values.secret.jwtSecret | b64enc | quote }}
 
 {{- end }}

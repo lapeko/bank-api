@@ -1,7 +1,10 @@
 environment: development
 postgres:
-  serviceName: postgres-service
+  name: postgres
   username: postgres
   password: abcd
   database: bank
   port: 5432
+secret:
+  postgresUrl: postgres://postgres:abcd@postgres-service:5432/bank?sslmode=disable
+  jwtSecret: jwt-secret
