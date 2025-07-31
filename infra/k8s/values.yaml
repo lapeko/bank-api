@@ -1,0 +1,14 @@
+deploy:
+  replicas: 1
+  image: 539247467338.dkr.ecr.eu-central-1.amazonaws.com/bank-api:latest
+  port: 3000
+  postgresUrl: postgres://postgres:1234@postgres-service:5432/bank?sslmode=disable
+  jwtSecret: jwt-secret
+service:
+  port: 80
+postgres:
+  enabled: true
+  username: postgres
+  password: "1234"
+  database: bank
+  port: 5432

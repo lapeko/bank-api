@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bank-api-deployment
+  labels:
+    app: bank-api
+spec:
+  replicas: {{ .Values.deploy.replicas }}
+  selector:
+    matchLabels:
+      app: bank-api
+  template:
+    metadata:
+      labels:
+        app: bank-api
+    spec:
+      containers:
+      - name: bank-api
+        image: {{ .Values.deploy.image }}
+        ports:
+        - containerPort: {{ .Values.deploy.port }}
+        env:
+        - name: POSTGRES_URL
+          value: "{{ .Values.deploy.postgresUrl }}"
+        - name: APP_PORT
+          value: "{{ .Values.deploy.port }}"
+        - name: JWT_SECRET_KEY
+          value: "{{ .Values.deploy.jwtSecret }}"
