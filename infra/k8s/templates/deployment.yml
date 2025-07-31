@@ -14,6 +14,15 @@ spec:
       labels:
         app: bank-api
     spec:
+      imagePullSecrets:
+      - name: ecr-secret
+      initContainers:
+      - name: wait-for-postgres
+        image: alpine
+        command:
+        - sh
+        - -c
+        - until nc -z {{ .Values.postgres.serviceName }} 5432; do echo "Waiting for Postgres..."; sleep 2; done
       containers:
       - name: bank-api
         image: {{ .Values.deploy.image }}
@@ -21,8 +30,8 @@ spec:
         - containerPort: {{ .Values.deploy.port }}
         env:
         - name: POSTGRES_URL
-          value: "{{ .Values.deploy.postgresUrl }}"
+          value: {{ .Values.deploy.postgresUrl }}
         - name: APP_PORT
           value: "{{ .Values.deploy.port }}"
         - name: JWT_SECRET_KEY
-          value: "{{ .Values.deploy.jwtSecret }}"
+          value: {{ .Values.deploy.jwtSecret }}

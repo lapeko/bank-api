@@ -14,10 +14,10 @@ services:
       JWT_SECRET_KEY: my_secret
 
   db:
-    image: postgres:alpine
+    image: postgres:17-alpine
     restart: always
     volumes:
-    - postgres:/var/lib/postgresql
+    - postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234

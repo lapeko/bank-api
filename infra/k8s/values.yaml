@@ -2,13 +2,15 @@ deploy:
   replicas: 1
   image: 539247467338.dkr.ecr.eu-central-1.amazonaws.com/bank-api:latest
   port: 3000
-  postgresUrl: postgres://postgres:1234@postgres-service:5432/bank?sslmode=disable
+  postgresUrl: postgres://postgres:abcd@postgres-service:5432/bank?sslmode=disable
   jwtSecret: jwt-secret
 service:
+  name: bank-api-service
   port: 80
 postgres:
+  serviceName: postgres-service
   enabled: true
   username: postgres
-  password: "1234"
+  password: abcd
   database: bank
   port: 5432

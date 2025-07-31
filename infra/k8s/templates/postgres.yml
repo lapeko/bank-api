@@ -16,24 +16,33 @@ spec:
       labels:
         app: postgres
     spec:
+      nodeName: node02
       containers:
       - name: postgres
         image: postgres:17-alpine
         env:
         - name: POSTGRES_USER
-          value: "{{ .Values.postgres.username }}"
+          value: {{ .Values.postgres.username }}
         - name: POSTGRES_PASSWORD
-          value: "{{ .Values.postgres.password }}"
+          value: {{ .Values.postgres.password }}
         - name: POSTGRES_DB
-          value: "{{ .Values.postgres.database }}"
+          value: {{ .Values.postgres.database }}
         ports:
         - containerPort: {{ .Values.postgres.port }}
+        volumeMounts:
+        - name: db-store
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: db-store
+        hostPath:
+          path: /data/postgres
+          type: DirectoryOrCreate
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-service
+  name: {{ .Values.postgres.serviceName }}
   labels:
     app: bank-api
 spec:
