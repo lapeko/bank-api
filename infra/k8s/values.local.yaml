@@ -1,0 +1,7 @@
+environment: development
+postgres:
+  serviceName: postgres-service
+  username: postgres
+  password: abcd
+  database: bank
+  port: 5432

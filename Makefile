@@ -42,8 +42,8 @@ local-api-up:
 		&& go run ./cmd/api/...
 
 helm-local-up:
-	helm install bank-api ./infra/k8s
-	@echo "wait for bank-api running"
+	helm install bank-api ./infra/k8s -f ./infra/k8s/values.local.yaml
+	@echo "wait for bank-api deployed"
 	@kubectl wait --for=condition=ready pod -l app=bank-api --timeout=60s
 	@echo "bank-api successfully run"
 	kubectl port-forward svc/bank-api-service 3000:80

@@ -1,4 +1,4 @@
-{{- if .Values.postgres.enabled }}
+{{- if ne .Values.environment "production" }}
 
 apiVersion: apps/v1
 kind: Deployment

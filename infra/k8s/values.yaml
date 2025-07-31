@@ -1,3 +1,4 @@
+environment: production
 deploy:
   replicas: 1
   image: 539247467338.dkr.ecr.eu-central-1.amazonaws.com/bank-api:latest
@@ -7,10 +8,3 @@ deploy:
 service:
   name: bank-api-service
   port: 80
-postgres:
-  serviceName: postgres-service
-  enabled: true
-  username: postgres
-  password: abcd
-  database: bank
-  port: 5432
