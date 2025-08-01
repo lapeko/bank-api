@@ -55,6 +55,13 @@ helm-local-down:
 helm-template:
 	 helm template bank-api ./infra/k8s -f ./infra/k8s/values.local.yaml --namespace $(APP_NAME) --create-namespace
 
+k8s-ecr-register:
+	aws ecr get-login-password --region eu-central-1 | \
+		kubectl create secret docker-registry ecr-secret \
+		--docker-server=539247467338.dkr.ecr.eu-central-1.amazonaws.com \
+		--docker-username=AWS \
+		--docker-password="$(cat -)"
+
 gen-mock-store:
 	mkdir -p internal/db/mockdb && \
 	mockgen \
