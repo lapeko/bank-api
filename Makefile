@@ -7,7 +7,7 @@
 
 POSTGRES_URL=postgres://postgres:1234@localhost:5432/bank?sslmode=disable
 MIGRATE_CMD=migrate -source file://internal/db/migration -database $(POSTGRES_URL) -verbose
-DOCKER_COMPOSE_PATH=infra/docker-compose.yaml
+DOCKER_COMPOSE_PATH=infra/docker/docker-compose.yaml
 APP_NAME=bank-api
 
 migrate:
