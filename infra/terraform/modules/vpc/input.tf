@@ -1,6 +1,6 @@
 variable "name" {
   type        = string
-  description = "Project/cluster name prefix"
+  description = "VPC name"
 }
 
 variable "azs" {
@@ -11,4 +11,9 @@ variable "azs" {
 variable "vpc_cidr" {
   type        = string
   description = "VPC CIDR block"
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
 }
