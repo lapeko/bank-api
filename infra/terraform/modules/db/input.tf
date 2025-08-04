@@ -13,6 +13,18 @@ variable "private_subnets" {
   type        = list(string)
 }
 
+variable instance_class {
+  type        = string
+}
+
+variable "vpc_id" {
+  type        = string
+}
+
+variable vpc_cidr {
+  type        = string
+}
+
 variable "name" {
   type        = string
   description = "RDS name"

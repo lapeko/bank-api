@@ -1,6 +1,6 @@
 resource "aws_db_subnet_group" "this" {
   name       = "${var.name}-db-subnet-group"
-  subnet_ids = var.private_subnets[*].id
+  subnet_ids = var.private_subnets
 
   tags = merge(var.tags, {
     Name = "${var.name}-db-subnet-group"
@@ -11,7 +11,7 @@ resource "aws_db_instance" "postgres" {
   identifier              = "${var.name}-postgres"
   engine                  = "postgres"
   engine_version          = "17"
-  instance_class          = "db.t4g.micro"
+  instance_class          = var.instance_class
   allocated_storage       = 20
   db_subnet_group_name    = aws_db_subnet_group.this.name
   vpc_security_group_ids  = [aws_security_group.db.id]
@@ -32,7 +32,7 @@ resource "aws_db_instance" "postgres" {
 
 resource "aws_security_group" "db" {
   name        = "${var.name}-db-sg"
-  vpc_id      = aws_vpc.this.id
+  vpc_id      = var.vpc_id
   description = "Allow DB access from private subnets"
 
   ingress {

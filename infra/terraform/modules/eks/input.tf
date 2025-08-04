@@ -1,5 +1,6 @@
-variable "name" {
-  type    = string
+variable name {
+    type        = string
+    description = "EKS name"
 }
 
 variable "vpc_id" {
@@ -8,11 +9,6 @@ variable "vpc_id" {
 
 variable "private_subnets" {
   type = list(string)
-}
-
-variable name {
-    type        = string
-    description = "EKS name"
 }
 
 variable "node_group_size" {

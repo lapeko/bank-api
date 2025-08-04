@@ -1,4 +1,4 @@
-output "db_url" {
+output "url" {
   value     = local.db_url
   sensitive = true
 }

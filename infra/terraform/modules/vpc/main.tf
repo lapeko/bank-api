@@ -74,7 +74,6 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_eip" "nat" {
   count = length(var.azs)
-  vpc   = true
 }
 
 resource "aws_nat_gateway" "nat" {
