@@ -10,19 +10,19 @@ variable "db_password" {
 }
 
 variable "private_subnets" {
-  type        = list(string)
+  type = list(string)
 }
 
-variable instance_class {
-  type        = string
+variable "instance_class" {
+  type = string
 }
 
 variable "vpc_id" {
-  type        = string
+  type = string
 }
 
-variable vpc_cidr {
-  type        = string
+variable "vpc_cidr" {
+  type = string
 }
 
 variable "name" {
@@ -30,7 +30,7 @@ variable "name" {
   description = "RDS name"
 }
 
-variable tags {
-  type        = map(string)
-  default     = {}
+variable "tags" {
+  type    = map(string)
+  default = {}
 }

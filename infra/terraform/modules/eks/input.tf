@@ -1,6 +1,6 @@
-variable name {
-    type        = string
-    description = "EKS name"
+variable "name" {
+  type        = string
+  description = "EKS name"
 }
 
 variable "vpc_id" {
@@ -16,7 +16,7 @@ variable "node_group_size" {
   default = 2
 }
 
-variable tags {
-  type        = map(string)
-  default     = {}
+variable "tags" {
+  type    = map(string)
+  default = {}
 }

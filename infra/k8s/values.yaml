@@ -6,3 +6,6 @@ deploy:
   port: 3000
 service:
   port: 80
+ingress:
+  namespace: ingress
+  domain: vlapeka.click

@@ -17,7 +17,7 @@ resource "aws_db_instance" "postgres" {
   vpc_security_group_ids  = [aws_security_group.db.id]
   username                = var.db_username
   password                = var.db_password
-  db_name                 = var.name
+  db_name                 = replace(var.name, "-", "_")
   skip_final_snapshot     = true
   deletion_protection     = true
   publicly_accessible     = false
@@ -49,9 +49,9 @@ resource "aws_security_group" "db" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-tags = merge(var.tags, {
+  tags = merge(var.tags, {
     Name = "${var.name}-db-sg"
-  })  
+  })
 }
 
 locals {
