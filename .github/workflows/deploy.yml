@@ -1,37 +1,77 @@
-name: Build and push to ECR
+name: Build and deploy to EKS
+
 on:
   push:
     branches: [main]
+
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+
     steps:
-    - name: Git pull
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4.1.0
-      with:
-        aws-region: eu-central-1
-        role-to-assume: arn:aws:iam::539247467338:role/my-gha-role
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::539247467338:role/my-gha-role
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: bank-api
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        docker build -f infra/docker/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_OUTPUT
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      - name: Build, tag, and push image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: bank-api
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker buildx build \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache \
+            -f infra/docker/Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Fail if image not built
+        if: ${{ steps.build-image.outputs.image == '' }}
+        run: exit 1
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region eu-central-1 \
+            --name bank-api-eks
+
+      - name: Helm lint
+        run: helm lint ./infra/k8s
+
+      - name: Helm deploy
+        run: |
+          helm upgrade --install bank-api ./infra/k8s \
+            --namespace bank-api \
+            --create-namespace \
+            --set image.repository=${{ steps.login-ecr.outputs.registry }}/bank-api \
+            --set image.tag=${{ steps.build-image.outputs.tag }} \
+            --wait --timeout 2m
+
+      - name: Check rollout status
+        run: |
+          kubectl rollout status deployment/bank-api-deployment -n bank-api
