@@ -1,3 +1,7 @@
+locals {
+  oidc_issuer = aws_eks_cluster.this.identity[0].oidc[0].issuer
+}
+
 resource "aws_iam_role" "eks_cluster" {
   name = "${var.name}-cluster-role"
 
@@ -89,5 +93,16 @@ resource "aws_eks_node_group" "this" {
 
   tags = merge(var.tags, {
     Name = "${var.name}-eks-node-group"
+  })
+}
+
+resource "aws_iam_openid_connect_provider" "this" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da0afd10df6"]
+
+  url = local.oidc_issuer
+
+  tags = merge(var.tags, {
+    Name = "${var.name}-oidc-provider"
   })
 }

@@ -6,7 +6,7 @@ variable "name" {
 
 variable "db_user" {
   type    = string
-  default = "bank-api"
+  default = "bank_api"
 }
 
 variable "vpc_cidr" {
