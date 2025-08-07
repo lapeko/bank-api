@@ -10,4 +10,6 @@ service:
 ingress:
   namespace: ingress
   domain: vlapeka.click
-saName: external-secrets-sa
+serviceAccount:
+  name: external-secrets-sa
+  arn: arn:aws:iam::539247467338:oidc-provider/oidc.eks.eu-central-1.amazonaws.com/id/7AAA3344A024EE59D0E807289B6C3583

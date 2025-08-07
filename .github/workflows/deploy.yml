@@ -60,16 +60,25 @@ jobs:
             --region eu-central-1 \
             --name bank-api-eks
 
+      - name: Install CRDs (external-secrets)
+        run: |
+          if ! kubectl get crd externalsecrets.external-secrets.io >/dev/null 2>&1; then \
+            echo "CRD not found, applying..."; \
+            kubectl apply --server-side -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.19.0/deploy/crds/bundle.yaml; \
+          else \
+            echo "CRD already exists, skipping apply."; \
+          fi
+
       - name: Helm lint
         run: helm lint ./infra/k8s
 
-      - name: Helm deploy
+      - name: Helm deploy app
         run: |
           helm upgrade --install bank-api ./infra/k8s \
             --namespace bank-api \
             --create-namespace \
-            --set image.repository=${{ steps.login-ecr.outputs.registry }}/bank-api \
-            --set image.tag=${{ steps.build-image.outputs.tag }} \
+            --set deploy.image.repo=${{ steps.login-ecr.outputs.registry }}/bank-api \
+            --set deploy.image.tag=${{ steps.build-image.outputs.tag }} \
             --wait --timeout 2m
 
       - name: Check rollout status
