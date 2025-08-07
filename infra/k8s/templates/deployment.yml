@@ -4,17 +4,17 @@ metadata:
   name: {{ .Release.Name }}-deployment
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Values.appName }}
+    app: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.deploy.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.appName }}
+      app: {{ .Release.Name }}
   template:
     metadata:
       namespace: {{ .Release.Namespace }}
       labels:
-        app: {{ .Values.appName }}
+        app: {{ .Release.Name }}
     spec:
       imagePullSecrets:
       - name: ecr-secret
@@ -29,7 +29,7 @@ spec:
 {{- end }}
       containers:
       - name: {{ .Release.Name }}
-        image: {{ .Values.deploy.image }}
+        image: {{ .Values.deploy.image.repo }}:{{ .Values.deploy.image.tag }}
         ports:
         - containerPort: {{ .Values.deploy.port }}
         env:
