@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.postgres.name }}-deploy
-  namespace: {{ .Values.appName }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ .Values.appName }}
 spec:
@@ -14,7 +14,7 @@ spec:
       app: {{ .Values.postgres.name }}
   template:
     metadata:
-      namespace: {{ .Values.appName }}
+      namespace: {{ .Release.Namespace }}
       labels:
         app: {{ .Values.postgres.name }}
     spec:
@@ -45,7 +45,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Values.postgres.name }}-service
-  namespace: {{ .Values.appName }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ .Values.appName }}
 spec:
@@ -55,16 +55,5 @@ spec:
     - protocol: TCP
       port: {{ .Values.postgres.port }}
       targetPort: {{ .Values.postgres.port }}
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: bank-api-secret
-  namespace: {{ .Values.appName }}
-type: Opaque
-data:
-  POSTGRES_URL: {{ .Values.secret.postgresUrl | b64enc | quote }}
-  JWT_SECRET_KEY: {{ .Values.secret.jwtSecret | b64enc | quote }}
 
 {{- end }}

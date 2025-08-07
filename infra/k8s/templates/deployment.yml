@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.appName }}-deployment
-  namespace: {{ .Values.appName }}
+  name: {{ .Release.Name }}-deployment
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ .Values.appName }}
 spec:
@@ -12,7 +12,7 @@ spec:
       app: {{ .Values.appName }}
   template:
     metadata:
-      namespace: {{ .Values.appName }}
+      namespace: {{ .Release.Namespace }}
       labels:
         app: {{ .Values.appName }}
     spec:
@@ -28,7 +28,7 @@ spec:
         - until nc -z {{ .Values.postgres.name }}-service 5432; do echo "Waiting for Postgres..."; sleep 2; done
 {{- end }}
       containers:
-      - name: bank-api
+      - name: {{ .Release.Name }}
         image: {{ .Values.deploy.image }}
         ports:
         - containerPort: {{ .Values.deploy.port }}
@@ -37,4 +37,4 @@ spec:
           value: "{{ .Values.deploy.port }}"
         envFrom:
         - secretRef:
-            name: bank-api-secret
+            name: {{ .Release.Name }}-secret

@@ -1,11 +1,13 @@
-appName: bank-api
 environment: production
 deploy:
   replicas: 1
-  image: 539247467338.dkr.ecr.eu-central-1.amazonaws.com/bank-api:latest
+  image:
+    repo: 539247467338.dkr.ecr.eu-central-1.amazonaws.com/bank-api
+    tag: latest
   port: 3000
 service:
   port: 80
 ingress:
   namespace: ingress
   domain: vlapeka.click
+saName: external-secrets-sa
