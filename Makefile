@@ -9,6 +9,7 @@ POSTGRES_URL=postgres://postgres:1234@localhost:5432/bank?sslmode=disable
 MIGRATE_CMD=migrate -source file://internal/db/migration -database $(POSTGRES_URL) -verbose
 DOCKER_COMPOSE_PATH=infra/docker/docker-compose.yaml
 APP_NAME=bank-api
+IMAGE_TAG=79ac383ebeb049ca0760264640425d0d897cdca6
 
 migrate:
 	$(MIGRATE_CMD) up
@@ -43,7 +44,7 @@ local-api-up:
 		&& go run ./cmd/api/...
 
 helm-local-up:
-	helm install $(APP_NAME) ./infra/k8s -f ./infra/k8s/values.local.yaml --namespace $(APP_NAME) --create-namespace
+	helm install $(APP_NAME) ./infra/k8s -f ./infra/k8s/values.local.yaml --namespace $(APP_NAME) --create-namespace --set deploy.image.tag=$(IMAGE_TAG)
 	@echo "wait for $(APP_NAME) to be run"
 	@kubectl wait --for=condition=ready pod -l app=$(APP_NAME) -n $(APP_NAME) --timeout=60s
 	@echo "$(APP_NAME) successfully run"
@@ -55,12 +56,13 @@ helm-local-down:
 helm-template:
 	 helm template bank-api ./infra/k8s -f ./infra/k8s/values.local.yaml --namespace $(APP_NAME) --create-namespace
 
-k8s-ecr-register:
-	aws ecr get-login-password --region eu-central-1 | \
-		kubectl create secret docker-registry ecr-secret \
+make k8s-ecr-register:
+	kubectl delete secret ecr-secret --namespace=bank-api --ignore-not-found
+	kubectl create secret docker-registry ecr-secret \
 		--docker-server=539247467338.dkr.ecr.eu-central-1.amazonaws.com \
 		--docker-username=AWS \
-		--docker-password="$(cat -)"
+		--docker-password="$$(aws ecr get-login-password --region eu-central-1)" \
+		--namespace=bank-api
 
 gen-mock-store:
 	mkdir -p internal/db/mockdb && \
