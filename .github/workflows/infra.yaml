@@ -68,6 +68,11 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Check Terraform version
+        run: |
+          which terraform
+          terraform -version
+
       - name: Terraform Init Stage1
         run: terraform init -input=false -chdir=infra/terraform/stage1
 
