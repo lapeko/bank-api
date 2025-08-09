@@ -1,14 +1,21 @@
+locals {
+  db_name   = replace(var.app_name, "-", "_")
+  safe_user = urlencode(var.db_username)
+  safe_pass = urlencode(var.db_password)
+  db_url    = "postgres://${local.safe_user}:${local.safe_pass}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/${local.db_name}?sslmode=require"
+}
+
 resource "aws_db_subnet_group" "this" {
-  name       = "${var.name}-db-subnet-group"
+  name       = "${var.app_name}-db-subnet-group"
   subnet_ids = var.private_subnets
 
   tags = merge(var.tags, {
-    Name = "${var.name}-db-subnet-group"
+    Name = "${var.app_name}-db-subnet-group"
   })
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier              = "${var.name}-postgres"
+  identifier              = var.app_name
   engine                  = "postgres"
   engine_version          = "17"
   instance_class          = var.instance_class
@@ -17,7 +24,7 @@ resource "aws_db_instance" "postgres" {
   vpc_security_group_ids  = [aws_security_group.db.id]
   username                = var.db_username
   password                = var.db_password
-  db_name                 = replace(var.name, "-", "_")
+  db_name                 = local.db_name
   skip_final_snapshot     = true
   deletion_protection     = true
   publicly_accessible     = false
@@ -26,12 +33,12 @@ resource "aws_db_instance" "postgres" {
   apply_immediately       = true
 
   tags = merge(var.tags, {
-    Name = "${var.name}-db"
+    Name = var.app_name
   })
 }
 
 resource "aws_security_group" "db" {
-  name        = "${var.name}-db-sg"
+  name        = "${var.app_name}-db-sg"
   vpc_id      = var.vpc_id
   description = "Allow DB access from private subnets"
 
@@ -50,10 +57,6 @@ resource "aws_security_group" "db" {
   }
 
   tags = merge(var.tags, {
-    Name = "${var.name}-db-sg"
+    Name = "${var.app_name}-db-sg"
   })
-}
-
-locals {
-  db_url = "postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.address}:${aws_db_instance.postgres.port}/${var.name}"
 }

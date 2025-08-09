@@ -1,6 +1,5 @@
-variable "name" {
-  type        = string
-  description = "VPC name"
+variable "app_name" {
+  type = string
 }
 
 variable "azs" {

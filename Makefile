@@ -2,7 +2,7 @@
 	migrate migrate-down sqlc \
 	docker-all-up docker-db-up docker-all-down docker-all-clear-down docker-build \
 	local-api-up helm-local-up helm-remote-up helm-down helm-template \
-	gen-mock-store update-kubeconfig
+	gen-mock-store update-kubeconfig rds-disable-deletion-protection
 
 
 POSTGRES_URL=postgres://postgres:1234@localhost:5432/bank?sslmode=disable
@@ -11,6 +11,8 @@ DOCKER_COMPOSE_PATH=infra/docker/docker-compose.yaml
 CHART_PATH=./infra/k8s
 APP_NAME=bank-api
 IMAGE_TAG=79ac383ebeb049ca0760264640425d0d897cdca6
+VPC_ID := $(shell terraform -chdir=./infra/terraform/stage1 output -raw vpc_id)
+ALB_ROLE_ARN := $(shell terraform -chdir=./infra/terraform/stage1 output -raw alb_controller_role_arn)
 
 migrate:
 	$(MIGRATE_CMD) up
@@ -51,22 +53,38 @@ helm-local-up:
 	@echo "$(APP_NAME) successfully run"
 	kubectl port-forward svc/$(APP_NAME)-service 3000:80 -n $(APP_NAME)
 
-helm-remote-up:
-	@if ! kubectl get crd externalsecrets.external-secrets.io >/dev/null 2>&1; then \
-		echo "CRD not found, applying..."; \
-		kubectl apply --server-side -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.19.0/deploy/crds/bundle.yaml; \
-	else \
-		echo "CRD already exists, skipping apply."; \
-	fi
-	helm upgrade --install $(APP_NAME) $(CHART_PATH) --namespace $(APP_NAME) --create-namespace --set deploy.image.tag=$(IMAGE_TAG)
+helm-up:
+	helm repo add eks https://aws.github.io/eks-charts --force-update
+	helm repo add external-secrets https://charts.external-secrets.io --force-update
+	helm repo update
+
+	helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+    -n kube-system --create-namespace --wait --atomic \
+    --set clusterName=bank-api-eks \
+    --set serviceAccount.create=true \
+    --set serviceAccount.name=aws-load-balancer-controller \
+    --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::539247467338:role/bank-api-alb-controller-role \
+    --set region=eu-central-1 \
+    --set vpcId=$(VPC_ID)
+
+	helm upgrade --install external-secrets external-secrets/external-secrets \
+	  -n external-secrets --create-namespace --wait --atomic \
+	  --set installCRDs=true
+
+	helm upgrade --install $(APP_NAME) $(CHART_PATH) \
+	  -n $(APP_NAME) --create-namespace \
+	  --set deploy.image.tag=$(IMAGE_TAG)
 
 helm-down:
-	helm uninstall $(APP_NAME) -n $(APP_NAME)
+	-helm uninstall $(APP_NAME) -n $(APP_NAME) || true
+	-helm uninstall external-secrets -n external-secrets || true
+	-kubectl delete namespace external-secrets || true
+	-helm uninstall aws-load-balancer-controller -n kube-system || true
 
 helm-template:
 	 helm template bank-api $(CHART_PATH) -f .$(CHART_PATH)/values.local.yaml --namespace $(APP_NAME) --create-namespace
 
-make k8s-ecr-register:
+k8s-ecr-register:
 	kubectl delete secret ecr-secret --namespace=bank-api --ignore-not-found
 	kubectl create secret docker-registry ecr-secret \
 		--docker-server=539247467338.dkr.ecr.eu-central-1.amazonaws.com \
@@ -83,3 +101,9 @@ gen-mock-store:
 
 update-kubeconfig:
 	aws eks --region eu-central-1 update-kubeconfig --name bank-api-eks
+
+rds-disable-deletion-protection:
+	aws rds modify-db-instance \
+		--db-instance-identifier bank-api \
+		--no-deletion-protection \
+		--apply-immediately

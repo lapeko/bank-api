@@ -3,7 +3,7 @@ locals {
 }
 
 resource "aws_iam_role" "eks_cluster" {
-  name = "${var.name}-cluster-role"
+  name = "${var.app_name}-cluster-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -15,7 +15,7 @@ resource "aws_iam_role" "eks_cluster" {
   })
 
   tags = merge(var.tags, {
-    Name = "${var.name}-cluster-role"
+    Name = "${var.app_name}-cluster-role"
   })
 }
 
@@ -30,7 +30,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_AmazonEKSServicePolicy" {
 }
 
 resource "aws_eks_cluster" "this" {
-  name     = var.name
+  name     = "${var.app_name}-eks"
   role_arn = aws_iam_role.eks_cluster.arn
 
   vpc_config {
@@ -43,12 +43,12 @@ resource "aws_eks_cluster" "this" {
   ]
 
   tags = merge(var.tags, {
-    Name = "${var.name}-eks_cluster"
+    Name = "${var.app_name}-eks"
   })
 }
 
 resource "aws_iam_role" "nodes" {
-  name = "${var.name}-node-role"
+  name = "${var.app_name}-node-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -60,7 +60,7 @@ resource "aws_iam_role" "nodes" {
   })
 
   tags = merge(var.tags, {
-    Name = "${var.name}-node-iam-role"
+    Name = "${var.app_name}-node-iam-role"
   })
 }
 
@@ -81,7 +81,7 @@ resource "aws_iam_role_policy_attachment" "nodes_AmazonEKS_CNI_Policy" {
 
 resource "aws_eks_node_group" "this" {
   cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "${var.name}-nodes"
+  node_group_name = "${var.app_name}-nodes"
   node_role_arn   = aws_iam_role.nodes.arn
   subnet_ids      = var.private_subnets
 
@@ -92,17 +92,24 @@ resource "aws_eks_node_group" "this" {
   }
 
   tags = merge(var.tags, {
-    Name = "${var.name}-eks-node-group"
+    Name = "${var.app_name}-eks-node-group"
   })
+}
+
+data "tls_certificate" "oidc" {
+  url = local.oidc_issuer
+}
+
+locals {
+  oidc_thumbprint = data.tls_certificate.oidc.certificates[length(data.tls_certificate.oidc.certificates) - 1].sha1_fingerprint
 }
 
 resource "aws_iam_openid_connect_provider" "this" {
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da0afd10df6"]
-
-  url = local.oidc_issuer
+  url             = local.oidc_issuer
+  thumbprint_list = [local.oidc_thumbprint]
 
   tags = merge(var.tags, {
-    Name = "${var.name}-oidc-provider"
+    Name = "${var.app_name}-oidc-provider"
   })
 }

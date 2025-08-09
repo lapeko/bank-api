@@ -1,4 +1,4 @@
-variable "name" {
+variable "app_name" {
   type        = string
   default     = "bank-api"
   description = "App name"

@@ -1,23 +1,8 @@
-variable "oidc_issuer" {
-  type = string
-}
-
-variable "cluster_name" {
-  type = string
-}
-
-variable "name" {
-  type        = string
-  default     = "bank-api"
-  description = "App name"
-}
-
-variable "domain" {
+variable "app_name" {
   type    = string
-  default = "vlapeka.click"
+  default = "bank-api"
 }
-
-variable "k8s_ingress_namespace" {
+variable "hosted_zone_id" {
   type    = string
-  default = "ingress"
+  default = "Z01784901TJOVTCAI4QKU"
 }

@@ -1,13 +1,15 @@
+variable "app_name" {
+  type = string
+}
+
 variable "db_username" {
-  type        = string
-  description = "DB username"
-  sensitive   = true
+  type      = string
+  sensitive = true
 }
 
 variable "db_password" {
-  type        = string
-  description = "DB password"
-  sensitive   = true
+  type      = string
+  sensitive = true
 }
 
 variable "private_subnets" {
@@ -24,11 +26,6 @@ variable "vpc_id" {
 
 variable "vpc_cidr" {
   type = string
-}
-
-variable "name" {
-  type        = string
-  description = "RDS name"
 }
 
 variable "tags" {

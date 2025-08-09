@@ -16,9 +16,9 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
+{{- if eq .Values.environment "development" }}
       imagePullSecrets:
       - name: ecr-secret
-{{- if eq .Values.environment "development" }}
       initContainers:
       - name: wait-for-postgres
         image: alpine

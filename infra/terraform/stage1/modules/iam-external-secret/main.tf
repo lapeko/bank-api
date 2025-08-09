@@ -1,5 +1,5 @@
 resource "aws_iam_role" "external_secrets" {
-  name = "${var.name}-external-secrets-role"
+  name = "${var.app_name}-external-secrets-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -13,6 +13,7 @@ resource "aws_iam_role" "external_secrets" {
         Condition = {
           StringEquals = {
             "${var.oidc_issuer}:sub" = "system:serviceaccount:kube-system:external-secrets-sa"
+            "${var.oidc_issuer}:aud" = "sts.amazonaws.com"
           }
         }
       }

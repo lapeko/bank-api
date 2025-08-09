@@ -1,15 +1,14 @@
-module "alb" {
-  source = "./modules/alb"
-
-  ingress_name      = "${var.name}-ingress"
-  ingress_namespace = var.k8s_ingress_namespace
-  domain            = var.domain
-  cluster_name      = var.cluster_name
+data "aws_lb" "ing" {
+  name = "${var.app_name}-ing"
 }
 
-module "alb-iam" {
-  source = "./modules/alb-iam"
-
-  name        = var.name
-  oidc_issuer = var.oidc_issuer
+resource "aws_route53_record" "app" {
+  zone_id = var.hosted_zone_id
+  name    = ""
+  type    = "A"
+  alias {
+    name                   = data.aws_lb.ing.dns_name
+    zone_id                = data.aws_lb.ing.zone_id
+    evaluate_target_health = true
+  }
 }
