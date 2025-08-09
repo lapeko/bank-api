@@ -6,4 +6,11 @@ terraform {
       version = "~> 6.0"
     }
   }
+  backend "s3" {
+    bucket         = "bank-api-tfstate"
+    key            = "stage1/terraform.tfstate"
+    region         = "eu-central-1"
+    dynamodb_table = "bank-api-tf-locks"
+    encrypt        = true
+  }
 }

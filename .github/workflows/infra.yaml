@@ -1,0 +1,134 @@
+name: Deploy and prepare infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths: ['infra/terraform/**']
+
+concurrency:
+  group: infra-stage
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository 
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::539247467338:role/my-gha-role
+
+      - name: Ensure S3 bucket exists
+        run: |
+          BUCKET_NAME="bank-api-tfstate"
+          if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+            echo "S3 bucket $BUCKET_NAME already exists"
+          else
+            echo "Creating S3 bucket $BUCKET_NAME"
+            aws s3api create-bucket \
+              --bucket "$BUCKET_NAME" \
+              --region eu-central-1 \
+              --create-bucket-configuration LocationConstraint=eu-central-1
+            aws s3api put-bucket-versioning \
+              --bucket "$BUCKET_NAME" \
+              --versioning-configuration Status=Enabled
+            aws s3api put-bucket-encryption \
+              --bucket "$BUCKET_NAME" \
+              --server-side-encryption-configuration '{
+                "Rules": [{
+                  "ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}
+                }]
+              }'
+          fi
+
+      - name: Ensure DynamoDB table exists
+        run: |
+          TABLE_NAME="bank-api-tf-locks"
+          if aws dynamodb describe-table --table-name "$TABLE_NAME" 2>/dev/null; then
+            echo "DynamoDB table $TABLE_NAME already exists"
+          else
+            echo "Creating DynamoDB table $TABLE_NAME"
+            aws dynamodb create-table \
+              --table-name "$TABLE_NAME" \
+              --attribute-definitions AttributeName=LockID,AttributeType=S \
+              --key-schema AttributeName=LockID,KeyType=HASH \
+              --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.12.0"
+
+      - name: Terraform Init Stage1
+        run: terraform init -input=false -chdir=infra/terraform/stage1
+
+      - name: Terraform Validate Stage1
+        run: terraform validate -input=false -chdir=infra/terraform/stage1
+
+      - name: Terraform Plan Stage1
+        run: terraform plan -input=false -chdir=infra/terraform/stage1
+
+      - name: Terraform Apply Stage1
+        run: terraform apply -input=false -chdir=infra/terraform/stage1 -auto-approve
+
+      - name: Ensure jq installed
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Export Terraform outputs from Stage1
+        run: |
+          cd infra/terraform/stage1
+          terraform output -json > tf.out.json
+          echo "VPC_ID=$(jq -r .vpc_id.value tf.out.json)" >> $GITHUB_ENV
+          echo "ALB_ROLE_ARN=$(jq -r .alb_controller_role_arn.value tf.out.json)" >> $GITHUB_ENV
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.3.0
+
+      - name: Wait EKS becomes active
+        run: aws eks wait cluster-active --region eu-central-1 --name bank-api-eks
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region eu-central-1 \
+            --name bank-api-eks
+
+      - name: Helm install necessary charts
+        run: |
+          helm repo add eks https://aws.github.io/eks-charts --force-update
+          helm repo add external-secrets https://charts.external-secrets.io --force-update
+          helm repo update
+
+          helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+            -n kube-system --create-namespace --wait --atomic \
+            --set clusterName=bank-api-eks \
+            --set serviceAccount.create=true \
+            --set serviceAccount.name=aws-load-balancer-controller \
+            --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=${ALB_ROLE_ARN} \
+            --set region=eu-central-1 \
+            --set vpcId=${VPC_ID}
+
+          helm upgrade --install external-secrets external-secrets/external-secrets \
+            -n external-secrets --create-namespace --wait --atomic \
+            --set installCRDs=true
+
+      - name: Terraform Init Stage2
+        run: terraform init -input=false -chdir=infra/terraform/stage2
+
+      - name: Terraform Validate Stage2
+        run: terraform validate -input=false -chdir=infra/terraform/stage2
+
+      - name: Terraform Plan Stage2
+        run: terraform plan -input=false -chdir=infra/terraform/stage2
+
+      - name: Terraform Apply Stage2
+        run: terraform apply -input=false -chdir=infra/terraform/stage2 -auto-approve

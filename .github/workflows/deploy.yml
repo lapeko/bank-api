@@ -3,6 +3,13 @@ name: Build and deploy to EKS
 on:
   push:
     branches: [main]
+    paths-ignore:
+    - '.github/workflows/**'
+    - 'infra/terraform/**'
+
+concurrency:
+  group: deploy-bank-api
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
@@ -25,13 +32,8 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-docker-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-docker-
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build, tag, and push image to ECR
         id: build-image
@@ -41,12 +43,11 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker buildx build \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache \
+            --cache-from=type=gha \
+            --cache-to=type=gha,mode=max \
             -f infra/docker/Dockerfile \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            --push .
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
@@ -59,18 +60,20 @@ jobs:
           aws eks update-kubeconfig \
             --region eu-central-1 \
             --name bank-api-eks
-
-      - name: Install CRDs (external-secrets)
-        run: |
-          if ! kubectl get crd externalsecrets.external-secrets.io >/dev/null 2>&1; then \
-            echo "CRD not found, applying..."; \
-            kubectl apply --server-side -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.19.0/deploy/crds/bundle.yaml; \
-          else \
-            echo "CRD already exists, skipping apply."; \
-          fi
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v4.3.0
 
       - name: Helm lint
         run: helm lint ./infra/k8s
+
+      - name: Helm dry-run validate
+        run: |
+          helm template bank-api ./infra/k8s \
+            --namespace bank-api \
+            --set deploy.image.repo=${{ steps.login-ecr.outputs.registry }}/bank-api \
+            --set deploy.image.tag=${{ steps.build-image.outputs.tag }} \
+            --validate >/dev/null
 
       - name: Helm deploy app
         run: |
@@ -79,8 +82,8 @@ jobs:
             --create-namespace \
             --set deploy.image.repo=${{ steps.login-ecr.outputs.registry }}/bank-api \
             --set deploy.image.tag=${{ steps.build-image.outputs.tag }} \
-            --wait --timeout 2m
+            --atomic --wait --timeout 10m
 
       - name: Check rollout status
         run: |
-          kubectl rollout status deployment/bank-api-deployment -n bank-api
+          kubectl rollout status deployment/bank-api-deployment -n bank-api --timeout=5m
