@@ -12,5 +12,5 @@ func Register(path string, router *gin.Engine) {
 }
 
 func healthHandler(ctx *gin.Context) {
-	ctx.String(http.StatusOK, "ok123")
+	ctx.String(http.StatusOK, "ok")
 }
