@@ -1,3 +1,3 @@
 - add JWT auth (add necessary middlewares)
-- add migration to have user-role
+- add migration to have user's role
 - Implement Route53 SSL

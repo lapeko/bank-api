@@ -1,9 +1,10 @@
 name: Test with coverage and codecov
 on: 
   workflow_dispatch:
-  push:
-    branches: [main, 'task-*']
-    paths-ignore: ['.github/workflows/**']
+  pull_request:
+    branches: [main]
+    paths-ignore:
+    - 'infra/**'
 jobs:
   test:
     runs-on: ubuntu-latest
