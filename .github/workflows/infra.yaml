@@ -74,16 +74,16 @@ jobs:
           terraform -version
 
       - name: Terraform Init Stage1
-        run: terraform init -input=false -chdir=infra/terraform/stage1
+        run: terraform -chdir=infra/terraform/stage1 init -input=false
 
       - name: Terraform Validate Stage1
-        run: terraform validate -input=false -chdir=infra/terraform/stage1
+        run: terraform -chdir=infra/terraform/stage1 validate -input=false
 
       - name: Terraform Plan Stage1
-        run: terraform plan -input=false -chdir=infra/terraform/stage1
+        run: terraform -chdir=infra/terraform/stage1 plan -input=false
 
       - name: Terraform Apply Stage1
-        run: terraform apply -input=false -chdir=infra/terraform/stage1 -auto-approve
+        run: terraform -chdir=infra/terraform/stage1 apply -input=false -auto-approve
 
       - name: Ensure jq installed
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -127,13 +127,13 @@ jobs:
             --set installCRDs=true
 
       - name: Terraform Init Stage2
-        run: terraform init -input=false -chdir=infra/terraform/stage2
+        run: terraform -chdir=infra/terraform/stage2 init -input=false
 
       - name: Terraform Validate Stage2
-        run: terraform validate -input=false -chdir=infra/terraform/stage2
+        run: terraform -chdir=infra/terraform/stage2 validate -input=false
 
       - name: Terraform Plan Stage2
-        run: terraform plan -input=false -chdir=infra/terraform/stage2
+        run: terraform -chdir=infra/terraform/stage2 plan -input=false
 
       - name: Terraform Apply Stage2
-        run: terraform apply -input=false -chdir=infra/terraform/stage2 -auto-approve
+        run: terraform -chdir=infra/terraform/stage2 apply -input=false -auto-approve
