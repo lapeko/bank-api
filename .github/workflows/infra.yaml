@@ -126,6 +126,10 @@ jobs:
             -n external-secrets --create-namespace --wait --atomic \
             --set installCRDs=true
 
+          helm template my-app ./infra/k8s \
+            --show-only templates/ingress.yaml \
+            | kubectl apply -f -
+
       - name: Terraform Init Stage2
         run: terraform -chdir=infra/terraform/stage2 init -input=false
 
