@@ -77,7 +77,7 @@ jobs:
         run: terraform -chdir=infra/terraform/stage1 init -input=false
 
       - name: Terraform Validate Stage1
-        run: terraform -chdir=infra/terraform/stage1 validate -input=false
+        run: terraform -chdir=infra/terraform/stage1 validate
 
       - name: Terraform Plan Stage1
         run: terraform -chdir=infra/terraform/stage1 plan -input=false
@@ -130,7 +130,7 @@ jobs:
         run: terraform -chdir=infra/terraform/stage2 init -input=false
 
       - name: Terraform Validate Stage2
-        run: terraform -chdir=infra/terraform/stage2 validate -input=false
+        run: terraform -chdir=infra/terraform/stage2 validate
 
       - name: Terraform Plan Stage2
         run: terraform -chdir=infra/terraform/stage2 plan -input=false
