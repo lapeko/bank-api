@@ -4,12 +4,6 @@ on:
   pull_request:
     branches: [main]
     paths-ignore:
-    - '.github/workflows/**'
-    - 'infra/**'
-  push:
-    branches-ignore: [main]
-    paths-ignore:
-    - '.github/workflows/**'
     - 'infra/**'
 jobs:
   test:
