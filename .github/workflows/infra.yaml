@@ -21,6 +21,8 @@ jobs:
       contents: read
     env:
       ReleaseName: "bank-api"
+      TerraPath: "./infra/terraform"
+      HelmPath: "./infra/k8s"
     steps:
       - name: Checkout repository 
         uses: actions/checkout@v4
@@ -77,16 +79,16 @@ jobs:
           terraform -version
 
       - name: Terraform Init Stage1
-        run: terraform -chdir=infra/terraform/stage1 init -input=false
+        run: terraform -chdir=${{ env.TerraPath }}/stage1 init -input=false
 
       - name: Terraform Validate Stage1
-        run: terraform -chdir=infra/terraform/stage1 validate
+        run: terraform -chdir=${{ env.TerraPath }}/stage1 validate
 
       - name: Terraform Plan Stage1
-        run: terraform -chdir=infra/terraform/stage1 plan -input=false
+        run: terraform -chdir=${{ env.TerraPath }}/stage1 plan -input=false
 
       - name: Terraform Apply Stage1
-        run: terraform -chdir=infra/terraform/stage1 apply -input=false -auto-approve
+        run: terraform -chdir=${{ env.TerraPath }}/stage1 apply -input=false -auto-approve
 
       - name: Ensure jq installed
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -129,10 +131,10 @@ jobs:
             -n external-secrets --create-namespace --wait --atomic \
             --set installCRDs=true
 
-          helm template ${{ env.ReleaseName }} ./infra/k8s \
-            --show-only templates/ingress.yaml \
-            --show-only templates/service.yaml \
-            | kubectl apply -f -
+          helm upgrade --install ${{ env.ReleaseName }} ${{ env.TerraPath }} \
+            -n ${{ env.ReleaseName }} --create-namespace \
+            --set deploy.image.repo=nginx \
+            --set deploy.image.tag=latest
 
       - name: Wait for ALB to be ready (with timeout)
         run: |
@@ -156,13 +158,13 @@ jobs:
           exit 1
 
       - name: Terraform Init Stage2
-        run: terraform -chdir=infra/terraform/stage2 init -input=false
+        run: terraform -chdir=${{ env.TerraPath }}/stage2 init -input=false
 
       - name: Terraform Validate Stage2
-        run: terraform -chdir=infra/terraform/stage2 validate
+        run: terraform -chdir=${{ env.TerraPath }}/stage2 validate
 
       - name: Terraform Plan Stage2
-        run: terraform -chdir=infra/terraform/stage2 plan -input=false
+        run: terraform -chdir=${{ env.TerraPath }}/stage2 plan -input=false
 
       - name: Terraform Apply Stage2
-        run: terraform -chdir=infra/terraform/stage2 apply -input=false -auto-approve
+        run: terraform -chdir=${{ env.TerraPath }}/stage2 apply -input=false -auto-approve
