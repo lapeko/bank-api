@@ -7,5 +7,5 @@ output "vpc_id" {
 }
 
 output "alb_controller_role_arn" {
-  value = module.iam-external-secret.external-secrets-role-arn
+  value = module.iam-alb.alb_controller_role_arn
 }
