@@ -19,6 +19,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      ReleaseName: "bank-api"
     steps:
       - name: Checkout repository 
         uses: actions/checkout@v4
@@ -31,7 +33,7 @@ jobs:
 
       - name: Ensure S3 bucket exists
         run: |
-          BUCKET_NAME="bank-api-tfstate"
+          BUCKET_NAME="${{ env.ReleaseName }}-tfstate"
           if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
             echo "S3 bucket $BUCKET_NAME already exists"
           else
@@ -54,7 +56,7 @@ jobs:
 
       - name: Ensure DynamoDB table exists
         run: |
-          TABLE_NAME="bank-api-tf-locks"
+          TABLE_NAME="${{ env.ReleaseName }}-tf-locks"
           if aws dynamodb describe-table --table-name "$TABLE_NAME" 2>/dev/null; then
             echo "DynamoDB table $TABLE_NAME already exists"
           else
@@ -100,13 +102,13 @@ jobs:
         uses: azure/setup-helm@v4.3.0
 
       - name: Wait EKS becomes active
-        run: aws eks wait cluster-active --region eu-central-1 --name bank-api-eks
+        run: aws eks wait cluster-active --region eu-central-1 --name ${{ env.ReleaseName }}-eks
 
       - name: Update kubeconfig for EKS
         run: |
           aws eks update-kubeconfig \
             --region eu-central-1 \
-            --name bank-api-eks
+            --name ${{ env.ReleaseName }}-eks
 
       - name: Helm install necessary charts
         run: |
@@ -116,7 +118,7 @@ jobs:
 
           helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
             -n kube-system --create-namespace --wait --atomic \
-            --set clusterName=bank-api-eks \
+            --set clusterName=${{ env.ReleaseName }}-eks \
             --set serviceAccount.create=true \
             --set serviceAccount.name=aws-load-balancer-controller \
             --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=${ALB_ROLE_ARN} \
@@ -127,10 +129,31 @@ jobs:
             -n external-secrets --create-namespace --wait --atomic \
             --set installCRDs=true
 
-          helm template my-app ./infra/k8s \
+          helm template ${{ env.ReleaseName }} ./infra/k8s \
             --show-only templates/ingress.yaml \
             --show-only templates/service.yaml \
             | kubectl apply -f -
+
+      - name: Wait for ALB to be ready (with timeout)
+        run: |
+          ALB_NAME="${{ env.ReleaseName }}-ing"
+          MAX_RETRIES=30
+          SLEEP_INTERVAL=10
+          
+          for ((i=1; i<=$MAX_RETRIES; i++)); do
+            if aws elbv2 describe-load-balancers \
+                --region eu-central-1 \
+                --query "LoadBalancers[?LoadBalancerName=='$ALB_NAME'].LoadBalancerName" \
+                --output text | grep -q "$ALB_NAME"; then
+              echo "ALB $ALB_NAME found!"
+              exit 0
+            fi
+            echo "Attempt $i/$MAX_RETRIES: ALB not ready yet. Waiting $SLEEP_INTERVAL seconds..."
+            sleep $SLEEP_INTERVAL
+          done
+          
+          echo "ERROR: ALB $ALB_NAME not found after $MAX_RETRIES attempts"
+          exit 1
 
       - name: Terraform Init Stage2
         run: terraform -chdir=infra/terraform/stage2 init -input=false
