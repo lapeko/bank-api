@@ -3,7 +3,9 @@ name: Deploy and prepare infrastructure
 on:
   push:
     branches: [main]
-    paths: ['infra/terraform/**']
+    paths: 
+    - 'infra/terraform/**'
+    - '.github/workflows/infra.yaml'
 
 concurrency:
   group: infra-stage
