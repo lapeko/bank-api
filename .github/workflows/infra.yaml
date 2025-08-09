@@ -131,7 +131,7 @@ jobs:
             -n external-secrets --create-namespace --wait --atomic \
             --set installCRDs=true
 
-          helm upgrade --install ${{ env.ReleaseName }} ${{ env.TerraPath }} \
+          helm upgrade --install ${{ env.ReleaseName }} ${{ env.HelmPath }} \
             -n ${{ env.ReleaseName }} --create-namespace \
             --set deploy.image.repo=nginx \
             --set deploy.image.tag=latest
