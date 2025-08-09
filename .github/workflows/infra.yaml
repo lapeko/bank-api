@@ -7,6 +7,7 @@ on:
     - 'infra/terraform/**'
     - '.github/workflows/infra.yaml'
 
+
 concurrency:
   group: infra-stage
   cancel-in-progress: true
